@@ -10,22 +10,23 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, id, dim, bias=None, activation='sigmoid', is_output=False):
+    def __init__(self, id, dim, activation='sigmoid', is_output=False):
         """
         Parameters
         ----------
+        id : int
+            the layer id
         dim : tuple
             the dimension of weights matrix
-        bias : float
-            the bias
         activation : string
             the activation function (default: 'sigmoid')
+        is_output : bool
+            the flag that shows if the layer is an output layer or not
         """
-        self.activation = activation
         self.weight = self.__normal_distr_weights_init(dim)
+        self.activation = activation
         self.delta = None
         self.A = None
-        self.activation = activation
         self.is_output_layer = is_output
         self.id = id
         
@@ -35,18 +36,18 @@ class Layer:
         return 2 * np.random.normal(0, 1, dim) - 1
     
     def __str__(self):
-        return '''Layer {5} ========
-    weights: 
-        {0}
-    deltas: 
+        return '''Layer {0} ========
+    weight: 
         {1}
-    inputs:
+    delta: 
         {2}
-    activation:
-        {3}
-    is output:
+    output:
         {4}
-=============='''.format(str(self.weight), self.delta, self.A, self.activation, self.is_output_layer, self.id)
+    activation:
+        {5}
+    is output:
+        {6}
+=============='''.format(self.id, str(self.weight), self.delta, self.A, self.activation, self.is_output_layer)
     
     def __sigmoid(self, x):
         """Compute sigmoid function.
@@ -167,7 +168,7 @@ class Layer:
         Parameters
         ----------
         y : numpy.array
-            the real output
+            the target values
         right_layer : Layer
             the next layer
         """
@@ -186,6 +187,8 @@ class Layer:
         ----------
         lr : float
             the learning rate
+        left_a : numpy.array
+            the output of previous layer and the input of current layer
         """
         a = np.atleast_2d(left_a)
         d = np.atleast_2d(self.delta)
@@ -221,7 +224,22 @@ class NeuralNetwork:
             [str(layer) for layer in self.layers]))
 
     def fit(self, X, y, lr=0.1, epochs=10000):
-        """
+        """Perform backpropagation algorithm.
+        
+        Parameters
+        ----------
+        X : numpy.array
+            the inputs
+        y : numpy.array
+            the targets
+        lr : float
+            the learning rate
+        epochs : int
+            the number of epochs
+        
+        Returns
+        -------
+        list of errors (Mean Square Error) of each mini-batch
         """
         errors = []
         ones = np.atleast_2d(np.ones(X.shape[0]))
@@ -240,7 +258,7 @@ class NeuralNetwork:
             
             error = float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
             errors.append(error)
-            print("epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
+            print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
         return errors
     
     def predict(self, x):
