@@ -10,47 +10,43 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, n_neurons=2, n_inputs=2, bias=None, activation='sigmoid'):
+    def __init__(self, id, dim, bias=None, activation='sigmoid', is_output=False):
         """
         Parameters
         ----------
-        n_neurons : int
-            the numbers of neurons (default: 2)
-        n_inputs : int
-            the number of inputs for each neuron (default: 2)
+        dim : tuple
+            the dimension of weights matrix
         bias : float
             the bias
         activation : string
             the activation function (default: 'sigmoid')
         """
         self.activation = activation
-        self.bias = bias if bias is not None else np.random.random()
-        self.weights = self.__normal_distr_weights_init(
-                rows=n_neurons, cols=n_inputs+1) # +1 for the bias
-        self.deltas = np.zeros((n_neurons, 1))
-        self.outputs = np.zeros((n_neurons, 1))
-        self.inputs = np.zeros((n_inputs, 1))
+        self.weight = self.__normal_distr_weights_init(dim)
+        self.delta = None
+        self.A = None
+        self.activation = activation
+        self.is_output_layer = is_output
+        self.id = id
         
-    def __normal_distr_weights_init(self, rows, cols):
+    def __normal_distr_weights_init(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
-        return np.random.normal(0, 1, (rows, cols))
+        return 2 * np.random.normal(0, 1, dim) - 1
     
     def __str__(self):
-        return '''Layer ========
+        return '''Layer {5} ========
     weights: 
         {0}
     deltas: 
         {1}
     inputs:
         {2}
-    outputs:
-        {3}
-    bias:
-        {4}
     activation:
-        {5}
-=============='''.format(str(self.weights), self.deltas, self.inputs, self.outputs, self.bias, self.activation)
+        {3}
+    is output:
+        {4}
+=============='''.format(str(self.weight), self.delta, self.A, self.activation, self.is_output_layer, self.id)
     
     def __sigmoid(self, x):
         """Compute sigmoid function.
@@ -72,6 +68,47 @@ class Layer:
         """
         return self.__sigmoid(x) * (1 - self.__sigmoid(x))
     
+    def __tanh(self, x):
+        """Compute tanh function.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return np.tanh(x)
+
+    def __tanh_prime(self, x):
+        """Compute tanh function derivative.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return 1.0 - np.tanh(x) ** 2
+    
+    def __relu(self, x):
+        """Compute relu function.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return np.maximum(x, 0)
+
+    def __relu_prime(self, x):
+        """Compute relu function derivative.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        x[x <= 0] = 0
+        x[x > 0] = 1
+        return x
     
     def activation_function(self, x):
         """Compute the default activation function.
@@ -83,6 +120,10 @@ class Layer:
         """
         if(self.activation == 'sigmoid'):
             return self.__sigmoid(x)
+        elif(self.activation == 'tanh'):
+            return self.__tanh(x)
+        elif(self.activation == 'relu'):
+            return self.__relu(x)
         else:
             return
     
@@ -96,10 +137,14 @@ class Layer:
         """
         if(self.activation == 'sigmoid'):
             return self.__sigmoid_prime(x)
+        elif(self.activation == 'tanh'):
+            return self.__tanh_prime(x)
+        elif(self.activation == 'relu'):
+            return self.__relu_prime(x)
         else:
             return
     
-    def feedforward(self, x):
+    def forward(self, x):
         """Compute the output of the layer.
         
         Parameters
@@ -111,32 +156,48 @@ class Layer:
         -------
         the output of the layer
         """
-        x.insert(0, self.bias)
-        x = np.array(x)
-        x.reshape(x.shape[0], 1)
-        self.inputs = x
-        self.outputs = list(self.activation_function(self.weights.dot(self.inputs)))
-        return self.outputs
+        z = np.dot(x, self.weight)
+        self.A = self.activation_function(z)
+        self.dZ = np.atleast_2d(self.activation_function_prime(z));
+        return self.A
+        
+    def backward(self, y, right_layer):
+        """Computes the deltas.
+        
+        Parameters
+        ----------
+        y : numpy.array
+            the real output
+        right_layer : Layer
+            the next layer
+        """
+        if self.is_output_layer:
+            error = self.A - y
+            self.delta = np.atleast_2d(error * self.dZ)
+        else:
+            self.delta = np.atleast_2d(
+                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
+        return self.delta
     
-    def adjust_weights(self, lr):
-        """Adjust the layer weights computing delta rule.
+    def update(self, lr, left_a):
+        """Update the layer weights computing delta rule.
         
         Parameters
         ----------
         lr : float
             the learning rate
         """
-        inputs = self.inputs.reshape(self.inputs.shape[0], 1).T
-        deltas = np.multiply(lr, self.deltas)
-        deltas = np.dot(deltas, inputs)
-        self.weights = self.weights + deltas
-    
+        a = np.atleast_2d(left_a)
+        d = np.atleast_2d(self.delta)
+        ad = a.T.dot(d)
+        self.weight -= lr * ad
+
     
 class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, n_inputs=2, sizes=[3,3,1]):
+    def __init__(self, dims=[3,3,1]):
         """Initialize a neural network.
         
         Parameters
@@ -146,61 +207,41 @@ class NeuralNetwork:
         sizes : list
             the dimensions of the network (default: [3,3,1])
         """
-        assert len(sizes) > 0, "Network must have sizes!"
         self.layers = []
-        for i in range(len(sizes)):
-            self.layers.append(Layer(
-                    bias=1,
-                    n_neurons=sizes[i], 
-                    n_inputs=(n_inputs) if i == 0 else (sizes[i-1]) ))
-    
+        for i in range(1, len(dims) - 1):
+            dim = (dims[i - 1] + 1, dims[i] + 1)
+            self.layers.append(Layer(id=i, dim=dim))
+        dim = (dims[i] + 1, dims[i + 1])
+        self.layers.append(Layer(id=len(dims) - 1, dim=dim, is_output=True))
+        
     def __str__(self):
         return('''Network ==============
 {0}
 ========================''').format('\n\n'.join(
             [str(layer) for layer in self.layers]))
 
-    def backprop(self, training_examples, lr=0.5):
-        """Backpropagation algorithm.
-        
-        Parameters
-        ----------
-        training_examples : list
-            the list of examples
-        lr : float
-            the learning rate (default: 0.5)
-        
-        Returns
-        -------
-        the mean square error of the mini batch
+    def fit(self, X, y, lr=0.1, epochs=10000):
         """
-        for example in training_examples:
-            x = example[:-1]
-            y = example[-1]
-            # propagate the inputs forward the network
-            for i, l in enumerate(self.layers):
-                inputs = x if i == 0 else self.layers[i-1].outputs
-                l.feedforward(inputs)
-            # compute deltas for each layer
-            for i in range(len(self.layers), 0, -1):
-                current_layer = self.layers[i-1]
-                out = current_layer.outputs
-                # chain rule
-                if i == len(self.layers):
-                    current_layer.deltas = np.dot(
-                            current_layer.activation_function_prime(out), 
-                            np.subtract(y, out))
-                else:
-                    succ_layer = self.layers[i]
-                    weighted_errors = np.dot(succ_layer.weights.T, succ_layer.deltas)
-                    weighted_errors = weighted_errors.reshape(weighted_errors.shape[0], 1)
-                    current_layer.deltas = np.dot(
-                             current_layer.activation_function_prime(out), 
-                             weighted_errors)
-            # adjust the weights of the neurons of each layer
-            for l in self.layers:
-                l.adjust_weights(lr)
-        return (np.square(np.array(y) - np.array(self.layers[-1].outputs))).mean(axis=0)
+        """
+        errors = []
+        ones = np.atleast_2d(np.ones(X.shape[0]))
+        X = np.concatenate((ones.T, X), axis=1)
+        for k in range(epochs):
+            a=X
+            for l in range(len(self.layers)):
+                a = self.layers[l].forward(a)
+            delta = self.layers[-1].backward(y, None)
+            for l in range(len(self.layers) - 2, -1, -1):
+                delta = self.layers[l].backward(delta, self.layers[l+1])
+            a = X
+            for layer in self.layers:
+                layer.update(lr, a)
+                a = layer.A
+            
+            error = float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
+            errors.append(error)
+            print("epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
+        return errors
     
     def predict(self, x):
         """Compute the predicted output of the network.
@@ -214,8 +255,7 @@ class NeuralNetwork:
         -------
         the predicted output
         """
-        output = None
-        for i, l in enumerate(self.layers):
-            inputs = x if i == 0 else self.layers[i-1].outputs
-            output = l.feedforward(inputs)
-        return output
+        a = np.concatenate((np.ones(1).T, np.array(x)), axis=0)
+        for l in range(0, len(self.layers)):
+            a = self.layers[l].forward(a)
+        return a
