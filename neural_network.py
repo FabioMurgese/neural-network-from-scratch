@@ -163,7 +163,7 @@ class Layer:
         return self.A
         
     def backward(self, y, right_layer):
-        """Computes the deltas.
+        """Computes the deltas by the chain rule.
         
         Parameters
         ----------
@@ -200,7 +200,7 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, dims=[3,3,1]):
+    def __init__(self, dims=[2,2,1]):
         """Initialize a neural network.
         
         Parameters
@@ -208,7 +208,7 @@ class NeuralNetwork:
         n_inputs : int
             the number of inputs (default: 2)
         sizes : list
-            the dimensions of the network (default: [3,3,1])
+            the dimensions of the network (default: [2,2,1])
         """
         self.layers = []
         for i in range(1, len(dims) - 1):
