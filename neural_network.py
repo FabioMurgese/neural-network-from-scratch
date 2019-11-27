@@ -157,9 +157,9 @@ class Layer:
         -------
         the output of the layer
         """
-        z = np.dot(x, self.weight)
-        self.A = self.activation_function(z)
-        self.dZ = np.atleast_2d(self.activation_function_prime(z));
+        z = np.dot(x, self.weight) # the net of the layer
+        self.A = self.activation_function(z) # sigma(net)
+        self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
         return self.A
         
     def backward(self, y, right_layer):
