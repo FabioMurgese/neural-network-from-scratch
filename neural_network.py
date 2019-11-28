@@ -50,7 +50,7 @@ class Layer:
 =============='''.format(self.id, str(self.weight), self.delta, self.A, self.activation, self.is_output_layer)
     
     def __sigmoid(self, x):
-        """Compute sigmoid function.
+        """Computes sigmoid function.
         
         Parameters
         ----------
@@ -60,7 +60,7 @@ class Layer:
         return 1.0 / (1.0 + np.exp(-np.array(x)))
     
     def __sigmoid_prime(self, x):
-        """Compute sigmoid function derivative.
+        """Computes sigmoid function derivative.
         
         Parameters
         ----------
@@ -70,7 +70,7 @@ class Layer:
         return self.__sigmoid(x) * (1 - self.__sigmoid(x))
     
     def __tanh(self, x):
-        """Compute tanh function.
+        """Computes tanh function.
         
         Parameters
         ----------
@@ -80,7 +80,7 @@ class Layer:
         return np.tanh(x)
 
     def __tanh_prime(self, x):
-        """Compute tanh function derivative.
+        """Computes tanh function derivative.
         
         Parameters
         ----------
@@ -90,7 +90,7 @@ class Layer:
         return 1.0 - np.tanh(x) ** 2
     
     def __relu(self, x):
-        """Compute relu function.
+        """Computes relu function.
         
         Parameters
         ----------
@@ -100,7 +100,7 @@ class Layer:
         return np.maximum(x, 0)
 
     def __relu_prime(self, x):
-        """Compute relu function derivative.
+        """Computes relu function derivative.
         
         Parameters
         ----------
@@ -112,7 +112,7 @@ class Layer:
         return x
     
     def activation_function(self, x):
-        """Compute the default activation function.
+        """Computes the default activation function.
         
         Parameters
         ----------
@@ -129,7 +129,7 @@ class Layer:
             return
     
     def activation_function_prime(self, x):
-        """Compute the default activation function derivative.
+        """Computes the default activation function derivative.
         
         Parameters
         ----------
@@ -146,7 +146,7 @@ class Layer:
             return
     
     def forward(self, x):
-        """Compute the output of the layer.
+        """Computes the output of the layer.
         
         Parameters
         ----------
@@ -223,7 +223,7 @@ class NeuralNetwork:
 ========================''').format('\n\n'.join(
             [str(layer) for layer in self.layers]))
 
-    def fit(self, X, y, lr=0.1, epochs=10000):
+    def backprop(self, X, y, lr=0.1):
         """Perform backpropagation algorithm.
         
         Parameters
@@ -233,36 +233,31 @@ class NeuralNetwork:
         y : numpy.array
             the targets
         lr : float
-            the learning rate
-        epochs : int
-            the number of epochs
+            the learning rate (default: 0.1)
         
         Returns
         -------
-        list of errors (Mean Square Error) of each mini-batch
+        the mean square error
         """
-        errors = []
         ones = np.atleast_2d(np.ones(X.shape[0]))
         X = np.concatenate((ones.T, X), axis=1)
-        for k in range(epochs):
-            a=X
-            for l in range(len(self.layers)):
-                a = self.layers[l].forward(a)
-            delta = self.layers[-1].backward(y, None)
-            for l in range(len(self.layers) - 2, -1, -1):
-                delta = self.layers[l].backward(delta, self.layers[l+1])
-            a = X
-            for layer in self.layers:
-                layer.update(lr, a)
-                a = layer.A
-            
-            error = float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
-            errors.append(error)
-            print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
-        return errors
+        a=X
+        # feedforward
+        for l in range(len(self.layers)):
+            a = self.layers[l].forward(a)
+        delta = self.layers[-1].backward(y, None)
+        #backward
+        for l in range(len(self.layers) - 2, -1, -1):
+            delta = self.layers[l].backward(delta, self.layers[l+1])
+        a = X
+        # adjust weights
+        for layer in self.layers:
+            layer.update(lr, a)
+            a = layer.A
+        return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
     
     def predict(self, x):
-        """Compute the predicted output of the network.
+        """Computes the predicted output of the network.
         
         Parameters
         ----------

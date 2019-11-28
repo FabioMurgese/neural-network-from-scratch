@@ -7,19 +7,23 @@ import matplotlib.pyplot as plt
 import neural_network as nn
 import numpy as np
 
-# hyperparameters
-batch_size = 150000
-lr = .1
-n_epochs = 10000
-
 X = np.array([[0, 0],
               [0, 1],
               [1, 0],
               [1, 1]])
 y = np.array([[0, 1, 1, 0]]).T
 
-net = nn.NeuralNetwork(dims=[2,3,1])
-errors = net.fit(X, y, lr=lr, epochs=n_epochs)
+# hyperparameters
+lr = .1
+epochs = 10000
+
+net = nn.NeuralNetwork(dims=[X.shape[1], 3, 1])
+
+errors = []
+for k in range(epochs):
+    error = net.backprop(X, y, lr=lr)
+    errors.append(error)
+    print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
 
 plt.plot(errors)
 plt.title('Learning curve')
