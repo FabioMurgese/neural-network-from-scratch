@@ -10,12 +10,10 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, id, dim, activation='sigmoid', is_output=False):
+    def __init__(self, dim, activation='sigmoid', is_output=False):
         """
         Parameters
         ----------
-        id : int
-            the layer id
         dim : tuple
             the dimension of weights matrix
         activation : string
@@ -23,12 +21,11 @@ class Layer:
         is_output : bool
             the flag that shows if the layer is an output layer or not
         """
-        self.weight = self.__normal_distr_weights_init(dim)
+        self.weight = self.__normal_distr_weights_init((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
         self.delta = None
         self.A = None
         self.is_output_layer = is_output
-        self.id = id
         
     def __normal_distr_weights_init(self, dim):
         """Initialize a matrix with normal distributed rows.
@@ -36,18 +33,18 @@ class Layer:
         return 2 * np.random.normal(0, 1, dim) - 1
     
     def __str__(self):
-        return '''Layer {0} ========
+        return '''Layer ========
     weight: 
-        {1}
+        {0}
     delta: 
-        {2}
+        {1}
     output:
-        {4}
+        {2}
     activation:
-        {5}
+        {3}
     is output:
-        {6}
-=============='''.format(self.id, str(self.weight), self.delta, self.A, self.activation, self.is_output_layer)
+        {4}
+=============='''.format(str(self.weight), self.delta, self.A, self.activation, self.is_output_layer)
     
     def __sigmoid(self, x):
         """Computes sigmoid function.
@@ -200,28 +197,31 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, dims=[2,2,1]):
+    def __init__(self):
         """Initialize a neural network.
-        
-        Parameters
-        ----------
-        n_inputs : int
-            the number of inputs (default: 2)
-        sizes : list
-            the dimensions of the network (default: [2,2,1])
         """
         self.layers = []
-        for i in range(1, len(dims) - 1):
-            dim = (dims[i - 1] + 1, dims[i] + 1)
-            self.layers.append(Layer(id=i, dim=dim))
-        dim = (dims[i] + 1, dims[i + 1])
-        self.layers.append(Layer(id=len(dims) - 1, dim=dim, is_output=True))
+#        for i in range(1, len(dims) - 1):
+#            dim = (dims[i - 1] + 1, dims[i] + 1)
+#            self.layers.append(Layer(id=i, dim=dim))
+#        dim = (dims[i] + 1, dims[i + 1])
+#        self.layers.append(Layer(id=len(dims) - 1, dim=dim, is_output=True))
         
     def __str__(self):
         return('''Network ==============
 {0}
 ========================''').format('\n\n'.join(
             [str(layer) for layer in self.layers]))
+        
+    def add(self, layer):
+        """Add a new layer to the network.
+        
+        Parameters
+        ----------
+        layer : neural_network.Layer
+            the new layer
+        """
+        self.layers.append(layer)
 
     def backprop(self, X, y, lr=0.1):
         """Perform backpropagation algorithm.
@@ -255,6 +255,31 @@ class NeuralNetwork:
             layer.update(lr, a)
             a = layer.A
         return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
+    
+    def fit(self, X, y, lr, epochs):
+        """Executing learning algorithm for a certain time of epochs.
+        
+        Parameters
+        ----------
+        X : numpy.array
+            the input matrix
+        y : numpy.array
+            the target vector
+        lr : float
+            the learning rate
+        epochs : int
+            the number of epochs
+        
+        Returns
+        -------
+        the errors of the learning algorithm at each epoch
+        """
+        errors = []
+        for k in range(epochs):
+            error = self.backprop(X, y, lr=lr)
+            errors.append(error)
+            print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
+        return errors
     
     def predict(self, x):
         """Computes the predicted output of the network.
