@@ -15,7 +15,7 @@ class Layer:
         Parameters
         ----------
         dim : tuple
-            the dimension of weights matrix
+            the dimension of weights matrix (e.g.: ('n° previous neurons', 'n° layer's neurons') )
         activation : string
             the activation function (default: 'sigmoid')
         is_output : bool
@@ -166,7 +166,7 @@ class Layer:
         ----------
         y : numpy.array
             the target values
-        right_layer : Layer
+        right_layer : neural_network.Layer
             the next layer
         """
         if self.is_output_layer:
@@ -257,7 +257,7 @@ class NeuralNetwork:
         return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
     
     def fit(self, X, y, lr, epochs):
-        """Executing learning algorithm for a certain time of epochs.
+        """Executing learning algorithm for a certain number of epochs.
         
         Parameters
         ----------
