@@ -14,11 +14,12 @@ X = np.array([[0, 0],
 y = np.array([[0, 1, 1, 0]]).T
 
 # hyperparameters
-lr = .2
+lr = .1
 epochs = 10000
 
 model = nn.NeuralNetwork()
 model.add(nn.Layer(dim=(X.shape[1],3), activation='sigmoid'))
+model.add(nn.Layer(dim=(3,3), activation='sigmoid'))
 model.add(nn.Layer(dim=(3,1), activation='sigmoid', is_output=True))
 
 errors = model.fit(X, y, lr, epochs)
