@@ -4,6 +4,8 @@
 @author: antodima
 """
 import numpy as np
+import datetime
+import pickle
 
 
 class Layer:
@@ -21,13 +23,13 @@ class Layer:
         is_output : bool
             the flag that shows if the layer is an output layer or not
         """
-        self.weight = self.__normal_distr_weights_init((dim[0]+1, dim[1] if is_output else dim[1]+1))
+        self.weight = self.__normal_weights((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
         self.delta = None
         self.A = None
         self.is_output_layer = is_output
         
-    def __normal_distr_weights_init(self, dim):
+    def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
         return 2 * np.random.normal(0, 1, dim) - 1
@@ -39,7 +41,7 @@ class Layer:
     delta: 
         {1}
     output:
-        {2}
+        {2}__normal_distr_weights_init
     activation:
         {3}
     is output:
@@ -198,14 +200,7 @@ class NeuralNetwork:
     """
     
     def __init__(self):
-        """Initialize a neural network.
-        """
         self.layers = []
-#        for i in range(1, len(dims) - 1):
-#            dim = (dims[i - 1] + 1, dims[i] + 1)
-#            self.layers.append(Layer(id=i, dim=dim))
-#        dim = (dims[i] + 1, dims[i + 1])
-#        self.layers.append(Layer(id=len(dims) - 1, dim=dim, is_output=True))
         
     def __str__(self):
         return('''Network ==============
@@ -222,6 +217,29 @@ class NeuralNetwork:
             the new layer
         """
         self.layers.append(layer)
+    
+    def save(self):
+        """Save the NeuralNetwork object to disk.
+        
+        Returns
+        -------
+        the file name
+        """
+        now = datetime.datetime.now()
+        filename = now.strftime('%Y%m%d_%H%M%S')+'.pkl'
+        with open(filename, 'wb') as output:
+            pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+        return filename
+    
+    def load(self, filename):
+        """Load NeuralNetwork object from file.
+        
+        Returns
+        -------
+        the NeuralNetwork object
+        """
+        with open(filename, 'rb') as file:
+            return pickle.load(file)
 
     def backprop(self, X, y, lr=0.1):
         """Perform backpropagation algorithm.
@@ -246,7 +264,7 @@ class NeuralNetwork:
         for l in range(len(self.layers)):
             a = self.layers[l].forward(a)
         delta = self.layers[-1].backward(y, None)
-        #backward
+        # backward
         for l in range(len(self.layers) - 2, -1, -1):
             delta = self.layers[l].backward(delta, self.layers[l+1])
         a = X
@@ -256,15 +274,13 @@ class NeuralNetwork:
             a = layer.A
         return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
     
-    def fit(self, X, y, lr, epochs):
+    def fit(self, training_set, lr, epochs):
         """Executing learning algorithm for a certain number of epochs.
         
         Parameters
         ----------
-        X : numpy.array
-            the input matrix
-        y : numpy.array
-            the target vector
+        training_set : numpy.array
+            the training set (inputs and targets)
         lr : float
             the learning rate
         epochs : int
@@ -276,8 +292,11 @@ class NeuralNetwork:
         """
         errors = []
         for k in range(epochs):
-            error = self.backprop(X, y, lr=lr)
+            x = np.atleast_2d(training_set[:,:-1]) # inputs
+            y = np.atleast_2d(training_set[:,-1]).T # targets
+            error = self.backprop(x, y, lr)
             errors.append(error)
+            np.random.shuffle(training_set)
             print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
         return errors
     
@@ -294,6 +313,6 @@ class NeuralNetwork:
         the predicted output
         """
         a = np.concatenate((np.ones(1).T, np.array(x)), axis=0)
-        for l in range(0, len(self.layers)):
-            a = self.layers[l].forward(a)
+        for l in self.layers:
+            a = l.forward(a)
         return a
