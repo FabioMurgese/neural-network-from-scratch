@@ -27,6 +27,7 @@ class Layer:
         self.activation = activation
         self.delta = None
         self.A = None
+        self.dw_old = None
         self.is_output_layer = is_output
         
     def __normal_weights(self, dim):
@@ -41,12 +42,14 @@ class Layer:
     delta: 
         {1}
     output:
-        {2}__normal_distr_weights_init
+        {2}
     activation:
         {3}
-    is output:
+    dimension:
         {4}
-=============='''.format(str(self.weight), self.delta, self.A, self.activation, self.is_output_layer)
+    is output:
+        {5}
+=============='''.format(str(self.weight), self.delta, self.A, self.activation, str(self.weight.shape), self.is_output_layer)
     
     def __sigmoid(self, x):
         """Computes sigmoid function.
@@ -179,7 +182,7 @@ class Layer:
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
     
-    def update(self, lr, left_a):
+    def update(self, lr, left_a, alpha):
         """Update the layer weights computing delta rule.
         
         Parameters
@@ -188,11 +191,19 @@ class Layer:
             the learning rate
         left_a : numpy.array
             the output of previous layer and the input of current layer
+        alpha : float
+            the momentum parameter
         """
         a = np.atleast_2d(left_a)
         d = np.atleast_2d(self.delta)
         ad = a.T.dot(d)
-        self.weight -= lr * ad
+        dw = lr * ad
+        if self.dw_old is not None:
+            momentum = alpha * self.dw_old
+            self.weight -= dw + momentum
+        else:
+            self.weight -= dw
+        self.dw_old = dw
 
     
 class NeuralNetwork:
@@ -241,7 +252,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
 
-    def backprop(self, X, y, lr=0.1):
+    def backprop(self, X, y, lr=0.1, alpha=0.5):
         """Perform backpropagation algorithm.
         
         Parameters
@@ -252,6 +263,8 @@ class NeuralNetwork:
             the targets
         lr : float
             the learning rate (default: 0.1)
+        alpha : float
+            the momentum parameter
         
         Returns
         -------
@@ -263,18 +276,18 @@ class NeuralNetwork:
         # feedforward
         for l in range(len(self.layers)):
             a = self.layers[l].forward(a)
-        delta = self.layers[-1].backward(y, None)
         # backward
+        delta = self.layers[-1].backward(y, None)
         for l in range(len(self.layers) - 2, -1, -1):
             delta = self.layers[l].backward(delta, self.layers[l+1])
         a = X
         # adjust weights
         for layer in self.layers:
-            layer.update(lr, a)
+            layer.update(lr, a, alpha)
             a = layer.A
         return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
     
-    def fit(self, training_set, lr, epochs):
+    def fit(self, training_set, lr, epochs, alpha):
         """Executing learning algorithm for a certain number of epochs.
         
         Parameters
@@ -294,7 +307,7 @@ class NeuralNetwork:
         for k in range(epochs):
             x = np.atleast_2d(training_set[:,:-1]) # inputs
             y = np.atleast_2d(training_set[:,-1]).T # targets
-            error = self.backprop(x, y, lr)
+            error = self.backprop(x, y, lr, alpha)
             errors.append(error)
             np.random.shuffle(training_set)
             print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
