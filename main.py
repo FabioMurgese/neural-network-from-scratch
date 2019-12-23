@@ -13,15 +13,19 @@ training_set = np.array([[0, 0, 0],
                   [1, 1, 0]])
 
 # hyperparameters
-lr = .1
-epochs = 10000
-alpha = 0.5
+lr = 0.1
+epochs = 1000
+alpha = 0.4
+lmbda = 0.001
+n_hidden = 15
+mb = 4 # mini-batch equals to number of examples means applying SGD
+loss = 'sse'
 
 model = nn.NeuralNetwork()
-model.add(nn.Layer(dim=(training_set.shape[1]-1,4), activation='sigmoid'))
-model.add(nn.Layer(dim=(4,1), activation='sigmoid', is_output=True))
+model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation='sigmoid', loss=loss))
+model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True, loss=loss))
 
-errors = model.fit(training_set, lr, epochs, alpha)
+errors = model.fit(training_set, lr, epochs, mb, alpha, lmbda)
 
 plt.plot(errors)
 plt.title('Learning curve')
@@ -29,17 +33,8 @@ plt.xlabel('Batch')
 plt.ylabel('Error')
 plt.show()
 
-print("\ny = {:d}, y_pred = {:f}".format(0, model.predict([0, 0])[0]))
-print("y = {:d}, y_pred = {:f}".format(1, model.predict([0, 1])[0]))
-print("y = {:d}, y_pred = {:f}".format(1, model.predict([1, 0])[0]))
-print("y = {:d}, y_pred = {:f}".format(0, model.predict([1, 1])[0]))
-
 """
 filename = model.save()
 model = nn.NeuralNetwork()
 model = model.load(filename)
-print("\ny = {:d}, y_pred = {:f}".format(0, model.predict([0, 0])[0]))
-print("y = {:d}, y_pred = {:f}".format(1, model.predict([0, 1])[0]))
-print("y = {:d}, y_pred = {:f}".format(1, model.predict([1, 0])[0]))
-print("y = {:d}, y_pred = {:f}".format(0, model.predict([1, 1])[0]))
 """

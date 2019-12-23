@@ -12,7 +12,7 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, dim, activation='sigmoid', is_output=False):
+    def __init__(self, dim, activation='sigmoid', is_output=False, loss='mse'):
         """
         Parameters
         ----------
@@ -22,6 +22,8 @@ class Layer:
             the activation function (default: 'sigmoid')
         is_output : bool
             the flag that shows if the layer is an output layer or not
+        loss : string
+            the loss function (default: mse)
         """
         self.weight = self.__normal_weights((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
@@ -29,6 +31,7 @@ class Layer:
         self.A = None
         self.dw_old = None
         self.is_output_layer = is_output
+        self.loss = loss
         
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
@@ -163,9 +166,9 @@ class Layer:
         self.A = self.activation_function(z) # sigma(net)
         self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
         return self.A
-        
-    def backward(self, y, right_layer):
-        """Computes the deltas by the chain rule.
+    
+    def sse(self, y, right_layer):
+        """Computes the deltas using the chain rule of Sum of Squares Error.
         
         Parameters
         ----------
@@ -181,8 +184,23 @@ class Layer:
             self.delta = np.atleast_2d(
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
+        
+    def backward(self, y, right_layer):
+        """Computes the default loss function derivative.
+        
+        Parameters
+        ----------
+        y : numpy.array
+            the target values
+        right_layer : neural_network.Layer
+            the next layer
+        """
+        if(self.loss == 'sse'):
+            return self.sse(y, right_layer)
+        else:
+            return
     
-    def update(self, lr, left_a, alpha):
+    def update(self, lr, left_a, alpha, lmbda):
         """Update the layer weights computing delta rule.
         
         Parameters
@@ -193,16 +211,24 @@ class Layer:
             the output of previous layer and the input of current layer
         alpha : float
             the momentum parameter
+        lmbda : float
+            the weight decay lambda regularization parameter
         """
         a = np.atleast_2d(left_a)
         d = np.atleast_2d(self.delta)
         ad = a.T.dot(d)
         dw = lr * ad
-        if self.dw_old is not None:
+        # add momentum
+        if(self.dw_old is not None):
             momentum = alpha * self.dw_old
-            self.weight -= dw + momentum
+            dw += momentum
+            self.weight -= dw
         else:
             self.weight -= dw
+        # weight decay for regularization
+        # not considering the bias
+        weight_decay = lmbda * self.weight[:,1:]
+        self.weight[:,1:] -= weight_decay
         self.dw_old = dw
 
     
@@ -211,13 +237,13 @@ class NeuralNetwork:
     """
     
     def __init__(self):
-        self.layers = []
+        self.layers = []           
         
     def __str__(self):
         return('''Network ==============
 {0}
 ========================''').format('\n\n'.join(
-            [str(layer) for layer in self.layers]))
+            [str(layer) for layer in self.layers]))        
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -252,7 +278,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
 
-    def backprop(self, X, y, lr=0.1, alpha=0.5):
+    def backprop(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
         """Perform backpropagation algorithm.
         
         Parameters
@@ -265,6 +291,8 @@ class NeuralNetwork:
             the learning rate (default: 0.1)
         alpha : float
             the momentum parameter
+        lmbda : float
+            the weight decay lambda regularization parameter
         
         Returns
         -------
@@ -283,11 +311,11 @@ class NeuralNetwork:
         a = X
         # adjust weights
         for layer in self.layers:
-            layer.update(lr, a, alpha)
+            layer.update(lr, a, alpha, lmbda)
             a = layer.A
         return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
     
-    def fit(self, training_set, lr, epochs, alpha):
+    def fit(self, training_set, lr, epochs, mb, alpha, lmbda):
         """Executing learning algorithm for a certain number of epochs.
         
         Parameters
@@ -298,6 +326,12 @@ class NeuralNetwork:
             the learning rate
         epochs : int
             the number of epochs
+        mb : int
+            the mini-batch size
+        alpha : float
+            the momentum parameter
+        lmbda : float
+            the weight decay lambda regularization parameter
         
         Returns
         -------
@@ -305,9 +339,13 @@ class NeuralNetwork:
         """
         errors = []
         for k in range(epochs):
-            x = np.atleast_2d(training_set[:,:-1]) # inputs
-            y = np.atleast_2d(training_set[:,-1]).T # targets
-            error = self.backprop(x, y, lr, alpha)
+            epoch_errors = []
+            for b in range(0, len(training_set), mb):
+                x = np.atleast_2d(training_set[b:b+mb,:-1]) # inputs
+                y = np.atleast_2d(training_set[b:b+mb,-1]).T # targets
+                error_mb = self.backprop(x, y, lr, alpha, lmbda)
+                epoch_errors.append(error_mb)
+            error = np.mean(epoch_errors)
             errors.append(error)
             np.random.shuffle(training_set)
             print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
@@ -325,7 +363,8 @@ class NeuralNetwork:
         -------
         the predicted output
         """
-        a = np.concatenate((np.ones(1).T, np.array(x)), axis=0)
+        ones = np.atleast_2d(np.ones(x.shape[0]))
+        a = np.concatenate((ones.T, x), axis=1)
         for l in self.layers:
             a = l.forward(a)
         return a
