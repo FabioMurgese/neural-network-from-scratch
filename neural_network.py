@@ -168,7 +168,7 @@ class Layer:
         return self.A
     
     def sse(self, y, right_layer):
-        """Computes the deltas using the chain rule of Sum of Squares Error.
+        """Computes the deltas using the chain rule of Sum of Squares Error loss function.
         
         Parameters
         ----------
@@ -186,7 +186,7 @@ class Layer:
         return self.delta
         
     def backward(self, y, right_layer):
-        """Computes the default loss function derivative.
+        """Perform the default loss function derivative.
         
         Parameters
         ----------
@@ -277,6 +277,39 @@ class NeuralNetwork:
         """
         with open(filename, 'rb') as file:
             return pickle.load(file)
+        
+    def MSE(self, target, output):
+        """Computes Mean Squared Error.
+        
+        Parameters
+        ----------
+        target : numpy.array
+            the targer values
+        output : numpy.array
+            the output values of the network
+        
+        Returns
+        -------
+        the mean squared error
+        """
+        return float(np.square(np.array(target) - np.array(output)).mean(axis=0))
+    
+    def MEE(self, target, output):
+        """Computes Mean Euclidean Error.
+        
+        Parameters
+        ----------
+        target : numpy.array
+            the targer values
+        output : numpy.array
+            the output values of the network
+        
+        Returns
+        -------
+        the mean euclidean error
+        """
+        N = target.shape[0]
+        return float(np.linalg.norm(np.array(output) - np.array(target)) / N)
 
     def backprop(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
         """Perform backpropagation algorithm.
@@ -296,7 +329,7 @@ class NeuralNetwork:
         
         Returns
         -------
-        the mean square error
+        the error
         """
         ones = np.atleast_2d(np.ones(X.shape[0]))
         X = np.concatenate((ones.T, X), axis=1)
@@ -313,10 +346,10 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update(lr, a, alpha, lmbda)
             a = layer.A
-        return float(np.square(np.array(y) - np.array(self.layers[-1].A)).mean(axis=0))
+        return self.MEE(y, self.layers[-1].A)
     
     def fit(self, training_set, lr, epochs, mb, alpha, lmbda):
-        """Executing learning algorithm for a certain number of epochs.
+        """Executing SGD learning algorithm.
         
         Parameters
         ----------
@@ -347,7 +380,7 @@ class NeuralNetwork:
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
             errors.append(error)
-            np.random.shuffle(training_set)
+            #np.random.shuffle(training_set)
             print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
         return errors
     
@@ -368,3 +401,12 @@ class NeuralNetwork:
         for l in self.layers:
             a = l.forward(a)
         return a
+
+
+def k_fold_cross_validation(X, K, randomise=False):
+    from sklearn.model_selection import KFold
+    kf = KFold(n_splits=K, shuffle=randomise)
+    kf.get_n_splits(X)
+    for tr_index, val_index in kf.split(X):
+        training, validation = X[tr_index], X[val_index]
+        yield training, validation
