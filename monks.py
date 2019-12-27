@@ -10,8 +10,8 @@ import numpy as np
 
 
 # load data
-dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=-1)
-dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=-1)
+dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=None)
+dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
 training_set = np.hstack((training_set, np.atleast_2d(dataset.iloc[:, 0].values).T))
 test_set = dataset_test.iloc[:, 1:-1].values
