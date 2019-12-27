@@ -67,7 +67,7 @@ plt.legend(['training', 'validation'], loc='upper right')
 plt.show()
 
 y = test_set[:,-1]
-y_pred, _ = model.predict(test_set)
+y_pred= model.predict(test_set[:,:-1])
 """
 for i, p in enumerate(y_pred):
     print("y = {:d}, y_pred = {:f}".format(y[i], float(p)))

@@ -405,19 +405,19 @@ class NeuralNetwork:
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
             tr_errors.append(error)
-            _, vl_error = self.predict(validation_set)
+            _, vl_error = self.validate(validation_set)
             vl_errors.append(vl_error)
             print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
                     k+1, epochs, error, vl_error))
         return tr_errors, vl_errors
     
-    def predict(self, x):
-        """Computes the predicted output of the network.
+    def validate(self, x):
+        """Computes the validation of the output of the network.
         
         Parameters
         ----------
-        x : list
-            the list of inputs
+        x : numpy.array
+            the inputs
             
         Returns
         -------
@@ -430,6 +430,25 @@ class NeuralNetwork:
         for l in self.layers:
             a = l.forward(a)
         return a, self.error(y, a)
+    
+    def predict(self, x):
+        """Computes the predicted output of the network.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the inputs
+            
+        Returns
+        -------
+        the predicted output
+        """
+        X = np.atleast_2d(x)
+        ones = np.atleast_2d(np.ones(X.shape[0]))
+        a = np.concatenate((ones.T, X), axis=1)
+        for l in self.layers:
+            a = l.forward(a)
+        return a
 
 
 def k_fold_cross_validation(X, K, randomise=True):
