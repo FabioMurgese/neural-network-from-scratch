@@ -19,9 +19,10 @@ test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T)
 
 # grid search
 grid = [
-        {"lr": 0.2, "epochs": 200, "alpha": 0.3, "lambda": 0.0001, "nhidden": 10, "mb": 5, "loss": 'sse'}]
+        {"lr": 0.2, "epochs": 300, "alpha": 0.3, "lambda": 0.0001, "nhidden": 10, "mb": 5, "loss": 'sse'}]
 grid_tr_errors = []
-k = 2
+grid_vl_errors = []
+k = 3
 for g in grid:
     # hyperparameters
     lr = g["lr"]
@@ -32,34 +33,45 @@ for g in grid:
     mb = g["mb"] # mini-batch equals to number of examples means applying SGD
     loss = g["loss"]
     # building the model
-    model = nn.NeuralNetwork()
+    model = nn.NeuralNetwork(error='mee')
     model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation='sigmoid', loss=loss))
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True, loss=loss))
     # k-fold cross validation
-    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=k, randomise=False):
-        tr_errors = model.fit(TR, lr, epochs, mb, alpha, lmbda)
+    fold = 1
+    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=k, randomise=True):
+        print('Fold #{:d}'.format(fold))
+        tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha, lmbda)
         grid_tr_errors.append(tr_errors)
+        grid_vl_errors.append(vl_errors)
+        fold += 1
 
-# mean the list of k-folds i-th elements
-errors = [0] * len(grid_tr_errors[0])
+# mean the i-th elements of the list of k-folds
+tr_errors = [0] * len(grid_tr_errors[0])
 for lst in grid_tr_errors:
     for i, e in enumerate(lst):
-        errors[i] += e
-errors = [x/k for x in errors]
+        tr_errors[i] += e
+tr_errors = [x/k for x in tr_errors]
+vl_errors = [0] * len(grid_vl_errors[0])
+for lst in grid_vl_errors:
+    for i, e in enumerate(lst):
+        vl_errors[i] += e
+vl_errors = [x/k for x in vl_errors]
 
 # plot learning curve
-plt.plot(errors)
+plt.plot(tr_errors)
+plt.plot(vl_errors)
 plt.title('Learning curve')
 plt.xlabel('Batch')
 plt.ylabel('Error')
+plt.legend(['training', 'validation'], loc='upper right')
 plt.show()
 
-# 
 y = test_set[:,-1]
-y_pred = model.predict(test_set[:,:-1])
+y_pred, _ = model.predict(test_set)
+"""
 for i, p in enumerate(y_pred):
     print("y = {:d}, y_pred = {:f}".format(y[i], float(p)))
-
+"""
 y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
 n_equals = 0
 for i, e in enumerate(y):

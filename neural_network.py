@@ -12,7 +12,7 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, dim, activation='sigmoid', is_output=False, loss='mse'):
+    def __init__(self, dim, activation='sigmoid', is_output=False, loss='sse'):
         """
         Parameters
         ----------
@@ -23,7 +23,7 @@ class Layer:
         is_output : bool
             the flag that shows if the layer is an output layer or not
         loss : string
-            the loss function (default: mse)
+            the loss function (default: sse)
         """
         self.weight = self.__normal_weights((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
@@ -236,8 +236,9 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self):
-        self.layers = []           
+    def __init__(self, error='mee'):
+        self.layers = []
+        self.err = error
         
     def __str__(self):
         return('''Network ==============
@@ -310,6 +311,27 @@ class NeuralNetwork:
         """
         N = target.shape[0]
         return float(np.linalg.norm(np.array(output) - np.array(target)) / N)
+    
+    def error(self, target, output):
+        """Computes the default error function.
+        
+        Parameters
+        ----------
+        target : numpy.array
+            the targer values
+        output : numpy.array
+            the output values of the network
+        
+        Returns
+        -------
+        the error
+        """
+        if(self.err == 'mee'):
+            return self.MEE(target, output)
+        elif(self.err == 'mse'):
+            return self.MSE(target, output)
+        else:
+            return
 
     def backprop(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
         """Perform backpropagation algorithm.
@@ -346,15 +368,17 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update(lr, a, alpha, lmbda)
             a = layer.A
-        return self.MEE(y, self.layers[-1].A)
+        return self.error(y, self.layers[-1].A)
     
-    def fit(self, training_set, lr, epochs, mb, alpha, lmbda):
+    def fit(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
         """Executing SGD learning algorithm.
         
         Parameters
         ----------
         training_set : numpy.array
             the training set (inputs and targets)
+        validation_set : numpy.array
+            the validation set
         lr : float
             the learning rate
         epochs : int
@@ -368,9 +392,10 @@ class NeuralNetwork:
         
         Returns
         -------
-        the errors of the learning algorithm at each epoch
+        the training errors, the validation errors
         """
-        errors = []
+        tr_errors = []
+        vl_errors = []
         for k in range(epochs):
             epoch_errors = []
             for b in range(0, len(training_set), mb):
@@ -379,10 +404,12 @@ class NeuralNetwork:
                 error_mb = self.backprop(x, y, lr, alpha, lmbda)
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
-            errors.append(error)
-            #np.random.shuffle(training_set)
-            print(">> epoch: {:d}/{:d}, error: {:f}".format(k+1, epochs, error))
-        return errors
+            tr_errors.append(error)
+            _, vl_error = self.predict(validation_set)
+            vl_errors.append(vl_error)
+            print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
+                    k+1, epochs, error, vl_error))
+        return tr_errors, vl_errors
     
     def predict(self, x):
         """Computes the predicted output of the network.
@@ -394,16 +421,21 @@ class NeuralNetwork:
             
         Returns
         -------
-        the predicted output
+        the predicted output, the default error
         """
-        ones = np.atleast_2d(np.ones(x.shape[0]))
-        a = np.concatenate((ones.T, x), axis=1)
+        X = np.atleast_2d(x[:,:-1])
+        y = np.atleast_2d(x[:,-1]).T
+        ones = np.atleast_2d(np.ones(X.shape[0]))
+        a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
             a = l.forward(a)
-        return a
+        return a, self.error(y, a)
 
 
-def k_fold_cross_validation(X, K, randomise=False):
+def k_fold_cross_validation(X, K, randomise=True):
+    """Perform k-fold cross validation splitting dataset
+    in trainng set and validation set.
+    """
     from sklearn.model_selection import KFold
     kf = KFold(n_splits=K, shuffle=randomise)
     kf.get_n_splits(X)
