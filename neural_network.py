@@ -4,7 +4,7 @@
 @author: antodima
 """
 import numpy as np
-import datetime
+import os.path
 import pickle
 
 
@@ -256,17 +256,22 @@ class NeuralNetwork:
         """
         self.layers.append(layer)
     
-    def save(self):
+    def save(self, folder, plt=None):
         """Save the NeuralNetwork object to disk.
         
         Returns
         -------
         the file name
         """
-        now = datetime.datetime.now()
-        filename = now.strftime('%Y%m%d_%H%M%S')+'.pkl'
+        directory = os.path.join('runs', folder)
+        filename = os.path.join(directory, folder+'.pkl')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
         with open(filename, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+        if(plt is not None):
+            plt.savefig(os.path.join(directory, 'learing_curve.png'))
+            plt.close()
         return filename
     
     def load(self, filename):
