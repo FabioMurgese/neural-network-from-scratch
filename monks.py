@@ -22,8 +22,8 @@ test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T)
 grid = [{"lr": 0.2, "epochs": 100, "alpha": 0.35, "lambda": 0.0002, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
         {"lr": 0.2, "epochs": 200, "alpha": 0.35, "lambda": 0.0003, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
 ]
+now = datetime.datetime.now()
 for i, g in enumerate(grid):
-    now = datetime.datetime.now()
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
     grid_tr_errors = []
     grid_vl_errors = []
