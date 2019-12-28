@@ -256,7 +256,7 @@ class NeuralNetwork:
         """
         self.layers.append(layer)
     
-    def save(self, folder, plt=None):
+    def save(self, folder, description='', plt=None):
         """Save the NeuralNetwork object to disk.
         
         Returns
@@ -272,6 +272,9 @@ class NeuralNetwork:
         if(plt is not None):
             plt.savefig(os.path.join(directory, 'learing_curve.png'))
             plt.close()
+        desc_filename = os.path.join(directory, 'description')
+        with open(desc_filename, 'w') as file:
+            file.write(description)
         return filename
     
     def load(self, filename):

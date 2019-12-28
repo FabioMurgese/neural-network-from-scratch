@@ -19,7 +19,9 @@ test_set = dataset_test.iloc[:, 1:-1].values
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{"lr": 0.2, "epochs": 300, "alpha": 0.3, "lambda": 0.0001, "nhidden": 10, "mb": 5, "nfolds": 3 , "loss": 'sse'}]
+grid = [{"lr": 0.2, "epochs": 100, "alpha": 0.35, "lambda": 0.0002, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
+        {"lr": 0.2, "epochs": 200, "alpha": 0.35, "lambda": 0.0003, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
+]
 for i, g in enumerate(grid):
     now = datetime.datetime.now()
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -34,9 +36,10 @@ for i, g in enumerate(grid):
     mb = g["mb"] # mini-batch equals to number of examples means applying SGD
     loss = g["loss"]
     n_folds = g["nfolds"]
+    activation = g["activation"]
     # building the model
     model = nn.NeuralNetwork(error='mee')
-    model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation='sigmoid', loss=loss))
+    model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation, loss=loss))
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True, loss=loss))
     # k-fold cross validation
     fold = 1
@@ -64,7 +67,8 @@ for i, g in enumerate(grid):
     plt.xlabel('Batch')
     plt.ylabel('Error')
     plt.legend(['training', 'validation'], loc='upper right')
-    model.save(folder, plt)
+    desc = str(g)
+    model.save(folder, desc, plt)
 
 """
 y = test_set[:,-1]
