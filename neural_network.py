@@ -12,7 +12,7 @@ class Layer:
     """Class implementation of a Neural Network Layer.
     """
     
-    def __init__(self, dim, activation='sigmoid', is_output=False, loss='sse'):
+    def __init__(self, dim, activation='sigmoid', is_output=False):
         """
         Parameters
         ----------
@@ -22,8 +22,6 @@ class Layer:
             the activation function (default: 'sigmoid')
         is_output : bool
             the flag that shows if the layer is an output layer or not
-        loss : string
-            the loss function (default: sse)
         """
         self.weight = self.__normal_weights((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
@@ -31,28 +29,11 @@ class Layer:
         self.A = None
         self.dw_old = None
         self.is_output_layer = is_output
-        self.loss = loss
         
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
         return 2 * np.random.normal(0, 1, dim) - 1
-    
-    def __str__(self):
-        return '''Layer ========
-    weight: 
-        {0}
-    delta: 
-        {1}
-    output:
-        {2}
-    activation:
-        {3}
-    dimension:
-        {4}
-    is output:
-        {5}
-=============='''.format(str(self.weight), self.delta, self.A, self.activation, str(self.weight.shape), self.is_output_layer)
     
     def __sigmoid(self, x):
         """Computes sigmoid function.
@@ -130,8 +111,6 @@ class Layer:
             return self.__tanh(x)
         elif(self.activation == 'relu'):
             return self.__relu(x)
-        else:
-            return
     
     def activation_function_prime(self, x):
         """Computes the default activation function derivative.
@@ -147,8 +126,6 @@ class Layer:
             return self.__tanh_prime(x)
         elif(self.activation == 'relu'):
             return self.__relu_prime(x)
-        else:
-            return
     
     def forward(self, x):
         """Computes the output of the layer.
@@ -167,7 +144,7 @@ class Layer:
         self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
         return self.A
     
-    def sse(self, y, right_layer):
+    def SSE(self, y, right_layer):
         """Computes the deltas using the chain rule of Sum of Squares Error loss function.
         
         Parameters
@@ -184,9 +161,9 @@ class Layer:
             self.delta = np.atleast_2d(
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
-        
-    def backward(self, y, right_layer):
-        """Perform the default loss function derivative.
+    
+    def BCE(self, y, right_layer):
+        """Computes the deltas using the chain rule of Binary Cross Entropy loss function.
         
         Parameters
         ----------
@@ -195,10 +172,31 @@ class Layer:
         right_layer : neural_network.Layer
             the next layer
         """
-        if(self.loss == 'sse'):
-            return self.sse(y, right_layer)
+        if self.is_output_layer:
+            m = y.shape[0]
+            error = (1 / m) * np.sum(np.maximum(self.A, 0) - self.A * y + np.log(1 + np.exp(-np.abs(self.A))))
+            self.delta = np.atleast_2d(error * self.dZ)
         else:
-            return
+            self.delta = np.atleast_2d(
+                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
+        return self.delta
+        
+    def backward(self, y, right_layer, loss='sse'):
+        """Perform the default loss function derivative.
+        
+        Parameters
+        ----------
+        y : numpy.array
+            the target values
+        right_layer : neural_network.Layer
+            the next layer
+        loss : string
+            the loss function (default: sse)
+        """
+        if(loss == 'sse'):
+            return self.SSE(y, right_layer)
+        elif(loss == 'bce'):
+            return self.BCE(y, right_layer)
     
     def update(self, lr, left_a, alpha, lmbda):
         """Update the layer weights computing delta rule.
@@ -236,15 +234,10 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error='mee'):
+    def __init__(self, error='mee', loss='sse'):
         self.layers = []
         self.err = error
-        
-    def __str__(self):
-        return('''Network ==============
-{0}
-========================''').format('\n\n'.join(
-            [str(layer) for layer in self.layers]))        
+        self.loss = loss       
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -338,8 +331,6 @@ class NeuralNetwork:
             return self.MEE(target, output)
         elif(self.err == 'mse'):
             return self.MSE(target, output)
-        else:
-            return
 
     def backprop(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
         """Perform backpropagation algorithm.
@@ -365,12 +356,12 @@ class NeuralNetwork:
         X = np.concatenate((ones.T, X), axis=1)
         a=X
         # feedforward
-        for l in range(len(self.layers)):
-            a = self.layers[l].forward(a)
+        for layer in self.layers:
+            a = layer.forward(a)
         # backward
         delta = self.layers[-1].backward(y, None)
         for l in range(len(self.layers) - 2, -1, -1):
-            delta = self.layers[l].backward(delta, self.layers[l+1])
+            delta = self.layers[l].backward(delta, self.layers[l+1], self.loss)
         a = X
         # adjust weights
         for layer in self.layers:

@@ -38,9 +38,9 @@ for i, g in enumerate(grid):
     n_folds = g["nfolds"]
     activation = g["activation"]
     # building the model
-    model = nn.NeuralNetwork(error='mee')
-    model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation, loss=loss))
-    model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True, loss=loss))
+    model = nn.NeuralNetwork(error='mee', loss=loss)
+    model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
     # k-fold cross validation
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, randomise=True):
