@@ -247,7 +247,7 @@ class NeuralNetwork:
             - sse = Sum of Squares Error loss function
             - bce = Binary Cross Entropy loss function
         learn_alg : string
-            the defaultlearning algorithm (default: sgd).
+            the default learning algorithm (default: sgd).
             - sgd = Stochastic Gradient Descent
         """
         self.learning_algorithm = learn_alg
@@ -472,12 +472,12 @@ class NeuralNetwork:
         return a
 
 
-def k_fold_cross_validation(X, K, randomise=True):
+def k_fold_cross_validation(X, K, shuffle=True):
     """Perform k-fold cross validation splitting dataset
     in trainng set and validation set.
     """
     from sklearn.model_selection import KFold
-    kf = KFold(n_splits=K, shuffle=randomise)
+    kf = KFold(n_splits=K, shuffle=shuffle)
     kf.get_n_splits(X)
     for tr_index, val_index in kf.split(X):
         training, validation = X[tr_index], X[val_index]

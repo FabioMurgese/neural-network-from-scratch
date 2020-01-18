@@ -49,7 +49,7 @@ for i, g in enumerate(grid):
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
     # k-fold cross validation
     fold = 1
-    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, randomise=True):
+    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
         print('Fold #{:d}'.format(fold))
         tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha, lmbda)
         grid_tr_errors.append(tr_errors)
