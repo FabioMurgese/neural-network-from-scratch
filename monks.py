@@ -14,13 +14,19 @@ import datetime
 dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=None)
 dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
-training_set = np.hstack((training_set, np.atleast_2d(dataset.iloc[:, 0].values).T))
 test_set = dataset_test.iloc[:, 1:-1].values
+# One-Hot Encoding training set
+from sklearn.preprocessing import OneHotEncoder
+encoder = OneHotEncoder()
+training_set = encoder.fit_transform(training_set).toarray()
+training_set = np.hstack((training_set, np.atleast_2d(dataset.iloc[:, 0].values).T))
+# One-Hot Encoding test set
+test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
 grid = [{"lr": 0.2, "epochs": 100, "alpha": 0.35, "lambda": 0.0002, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
-        {"lr": 0.2, "epochs": 200, "alpha": 0.35, "lambda": 0.0003, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
+        {"lr": 0.2, "epochs": 80, "alpha": 0.35, "lambda": 0.0003, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
 ]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
@@ -38,7 +44,7 @@ for i, g in enumerate(grid):
     n_folds = g["nfolds"]
     activation = g["activation"]
     # building the model
-    model = nn.NeuralNetwork(error='mee', loss=loss)
+    model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
     # k-fold cross validation

@@ -234,10 +234,26 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error='mee', loss='sse'):
+    def __init__(self, error='mee', loss='sse', learn_alg='sgd'):
+        """
+        Parameters
+        ----------
+        error : string
+            the default error function (default: mee).
+            - mee = Mean Euclidean Error
+            - mse = Mean Squared Error
+        loss : string
+            the default loss function (default: sse).
+            - sse = Sum of Squares Error loss function
+            - bce = Binary Cross Entropy loss function
+        learn_alg : string
+            the defaultlearning algorithm (default: sgd).
+            - sgd = Stochastic Gradient Descent
+        """
+        self.learning_algorithm = learn_alg
         self.layers = []
         self.err = error
-        self.loss = loss       
+        self.loss = loss
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -369,7 +385,7 @@ class NeuralNetwork:
             a = layer.A
         return self.error(y, self.layers[-1].A)
     
-    def fit(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
+    def SGD(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
         """Executing SGD learning algorithm.
         
         Parameters
@@ -409,6 +425,12 @@ class NeuralNetwork:
             print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
                     k+1, epochs, error, vl_error))
         return tr_errors, vl_errors
+    
+    def fit(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
+        """Computes the default learning algorithm.
+        """
+        if(self.learning_algorithm == 'sgd'):
+            return self.SGD(training_set, validation_set, lr, epochs, mb, alpha, lmbda)
     
     def validate(self, x):
         """Computes the validation of the output of the network.
