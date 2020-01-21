@@ -279,7 +279,7 @@ class NeuralNetwork:
         with open(filename, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
         if(plt is not None):
-            plt.savefig(os.path.join(directory, 'learing_curve.png'))
+            plt.savefig(os.path.join(directory, 'learning_curve.png'))
             plt.close()
         desc_filename = os.path.join(directory, 'description')
         with open(desc_filename, 'w') as file:

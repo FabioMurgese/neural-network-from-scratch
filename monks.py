@@ -25,9 +25,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{"lr": 0.2, "epochs": 100, "alpha": 0.35, "lambda": 0.0002, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
-        {"lr": 0.2, "epochs": 80, "alpha": 0.35, "lambda": 0.0003, "nhidden": 15, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'},
-]
+grid = [{"lr": 0.025, "epochs": 900, "alpha": 0.35, "lambda": 0.0003, "nhidden": 30, "mb": 10, "nfolds": 3, "activation": 'sigmoid', "loss": 'sse'}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -46,6 +44,7 @@ for i, g in enumerate(grid):
     # building the model
     model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
     # k-fold cross validation
     fold = 1
