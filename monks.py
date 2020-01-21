@@ -11,8 +11,8 @@ import datetime
 
 
 # load data
-dataset = pd.read_csv('datasets/monks/monks-2.train', delim_whitespace=True, header=None)
-dataset_test = pd.read_csv('datasets/monks/monks-2.test', delim_whitespace=True, header=None)
+dataset = pd.read_csv('datasets/monks/monks-3.train', delim_whitespace=True, header=None)
+dataset_test = pd.read_csv('datasets/monks/monks-3.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
 test_set = dataset_test.iloc[:, 1:-1].values
 # One-Hot Encoding training set
@@ -25,9 +25,8 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.06, 'epochs': 600, 'alpha': 0.5, 'lambda': 0.0002, 'nhidden': 25, 'mb': 5, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'sse'},
-        {'lr': 0.06, 'epochs': 700, 'alpha': 0.52, 'lambda': 0.00012, 'nhidden': 25, 'mb': 5, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'sse'},
-        {'lr': 0.07, 'epochs': 500, 'alpha': 0.53, 'lambda': 0.00015, 'nhidden': 25, 'mb': 5, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'sse'}]
+grid = [{'lr': 0.017, 'epochs': 800, 'alpha': 0.7, 'lambda': 0.001, 'nhidden': 20, 'mb': 10, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'sse'}
+        ]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
