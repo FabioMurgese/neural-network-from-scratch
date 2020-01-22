@@ -11,7 +11,7 @@ import pickle
 class Layer:
     """Class implementation of a Neural Network Layer.
     """
-    
+
     def __init__(self, dim, activation='sigmoid', is_output=False):
         """
         Parameters
@@ -29,12 +29,12 @@ class Layer:
         self.A = None
         self.dw_old = None
         self.is_output_layer = is_output
-        
+
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
         return 2 * np.random.normal(0, 1, dim) - 1
-    
+
     def __sigmoid(self, x):
         """Computes sigmoid function.
         
@@ -44,7 +44,7 @@ class Layer:
             the array of inputs
         """
         return 1.0 / (1.0 + np.exp(-np.array(x)))
-    
+
     def __sigmoid_prime(self, x):
         """Computes sigmoid function derivative.
         
@@ -54,7 +54,7 @@ class Layer:
             the array of inputs
         """
         return self.__sigmoid(x) * (1 - self.__sigmoid(x))
-    
+
     def __tanh(self, x):
         """Computes tanh function.
         
@@ -74,7 +74,7 @@ class Layer:
             the array of inputs
         """
         return 1.0 - np.tanh(x) ** 2
-    
+
     def __relu(self, x):
         """Computes relu function.
         
@@ -96,7 +96,7 @@ class Layer:
         x[x <= 0] = 0
         x[x > 0] = 1
         return x
-    
+
     def activation_function(self, x):
         """Computes the default activation function.
         
@@ -111,7 +111,7 @@ class Layer:
             return self.__tanh(x)
         elif(self.activation == 'relu'):
             return self.__relu(x)
-    
+
     def activation_function_prime(self, x):
         """Computes the default activation function derivative.
         
@@ -126,7 +126,7 @@ class Layer:
             return self.__tanh_prime(x)
         elif(self.activation == 'relu'):
             return self.__relu_prime(x)
-    
+
     def forward(self, x):
         """Computes the output of the layer.
         
@@ -143,7 +143,7 @@ class Layer:
         self.A = self.activation_function(z) # sigma(net)
         self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
         return self.A
-    
+
     def SSE(self, y, right_layer):
         """Computes the deltas using the chain rule of Sum of Squares Error loss function.
         
@@ -161,7 +161,25 @@ class Layer:
             self.delta = np.atleast_2d(
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
-    
+
+    def MSE(self, y, right_layer):
+        """Computes the deltas using the chain rule of Sum of Squares Error loss function.
+
+        Parameters
+        ----------
+        y : numpy.array
+            the target values
+        right_layer : neural_network.Layer
+            the next layer
+        """
+        if self.is_output_layer:
+            error = 1 / y.shape[0] * (self.A - y)
+            self.delta = np.atleast_2d(error * self.dZ)
+        else:
+            self.delta = np.atleast_2d(
+                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
+        return self.delta
+
     def BCE(self, y, right_layer):
         """Computes the deltas using the chain rule of Binary Cross Entropy loss function.
         
@@ -180,8 +198,8 @@ class Layer:
             self.delta = np.atleast_2d(
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
-        
-    def backward(self, y, right_layer, loss='sse'):
+
+    def backward(self, y, right_layer, loss='mse'):
         """Perform the default loss function derivative.
         
         Parameters
@@ -191,13 +209,15 @@ class Layer:
         right_layer : neural_network.Layer
             the next layer
         loss : string
-            the loss function (default: sse)
+            the loss function (default: mse)
         """
-        if(loss == 'sse'):
+        if (loss == 'mse'):
+            return self.MSE(y, right_layer)
+        elif(loss == 'sse'):
             return self.SSE(y, right_layer)
         elif(loss == 'bce'):
             return self.BCE(y, right_layer)
-    
+
     def update(self, lr, left_a, alpha, lmbda):
         """Update the layer weights computing delta rule.
         
@@ -216,6 +236,8 @@ class Layer:
         d = np.atleast_2d(self.delta)
         ad = a.T.dot(d)
         dw = lr * ad
+        self.dw_old = dw
+
         # add momentum
         if(self.dw_old is not None):
             momentum = alpha * self.dw_old
@@ -227,7 +249,6 @@ class Layer:
         # not considering the bias
         weight_decay = lmbda * self.weight[:,1:]
         self.weight[:,1:] -= weight_decay
-        self.dw_old = dw
 
     
 class NeuralNetwork:
