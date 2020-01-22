@@ -163,7 +163,7 @@ class Layer:
         return self.delta
 
     def MSE(self, y, right_layer):
-        """Computes the deltas using the chain rule of Sum of Squares Error loss function.
+        """Computes the deltas using the chain rule of Mean Squared Error loss function.
 
         Parameters
         ----------
@@ -173,7 +173,7 @@ class Layer:
             the next layer
         """
         if self.is_output_layer:
-            error = 1 / y.shape[0] * (self.A - y)
+            error = (2 / y.shape[0]) * (self.A - y)
             self.delta = np.atleast_2d(error * self.dZ)
         else:
             self.delta = np.atleast_2d(
