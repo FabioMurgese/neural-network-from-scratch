@@ -83,6 +83,16 @@ class Layer:
         """
         return np.maximum(x, 0)
 
+    def __linear(self, x):
+        """Computes linear function.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return x
+
     def __relu_prime(self, x):
         """Computes relu function derivative.
         
@@ -113,6 +123,17 @@ class Layer:
         x : numpy.array
             the array of inputs
         """
+        return 1
+
+    def __linear_prime(self, x):
+        """Computes linear function derivative.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+
         return 1
 
     def activation_function(self, x):
