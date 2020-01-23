@@ -1,1 +1,0 @@
-{'lr': 0.01, 'epochs': 1000, 'alpha': 0.7, 'lambda': 0.0002, 'nhidden': 10, 'mb': 10, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'sse'}

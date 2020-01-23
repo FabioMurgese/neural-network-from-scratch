@@ -144,6 +144,25 @@ class Layer:
         self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
         return self.A
     
+    def MSE(self, y, right_layer):
+        """Computes the deltas using the chain rule of Sum of Squares Error loss function.
+        
+        Parameters
+        ----------
+        y : numpy.array
+            the target values
+        right_layer : neural_network.Layer
+            the next layer
+        """
+        if self.is_output_layer:
+            n = y.shape[0]
+            error = (2 / n) * (self.A - y)
+            self.delta = np.atleast_2d(error * self.dZ)
+        else:
+            self.delta = np.atleast_2d(
+                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
+        return self.delta
+    
     def SSE(self, y, right_layer):
         """Computes the deltas using the chain rule of Sum of Squares Error loss function.
         
@@ -181,7 +200,7 @@ class Layer:
                 np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
         return self.delta
         
-    def backward(self, y, right_layer, loss='sse'):
+    def backward(self, y, right_layer, loss='mse'):
         """Perform the default loss function derivative.
         
         Parameters
@@ -191,9 +210,11 @@ class Layer:
         right_layer : neural_network.Layer
             the next layer
         loss : string
-            the loss function (default: sse)
+            the loss function (default: mse)
         """
-        if(loss == 'sse'):
+        if(loss == 'mse'):
+            return self.SSE(y, right_layer)
+        elif(loss == 'sse'):
             return self.SSE(y, right_layer)
         elif(loss == 'bce'):
             return self.BCE(y, right_layer)
