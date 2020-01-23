@@ -25,7 +25,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.03, 'epochs': 800, 'alpha': 0.7, 'lambda': 0.001, 'nhidden': 3, 'mb': 10, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
+grid = [{'lr': 0.3, 'epochs': 1000, 'alpha': 0.1, 'lambda': 0.01, 'nhidden': 4, 'mb': 20, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)

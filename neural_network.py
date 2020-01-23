@@ -33,7 +33,7 @@ class Layer:
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
-        return 2 * np.random.normal(0, 1, dim) - 1
+        return np.random.normal(0, 0.01, dim)
 
     def __sigmoid(self, x):
         """Computes sigmoid function.
