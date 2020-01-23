@@ -29,9 +29,9 @@ class Layer:
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
-        mean = 0
-        variance = 0.01
-        return np.random.normal(mean, variance, dim)
+        self.mean = 0
+        self.variance = 0.01
+        return np.random.normal(self.mean, self.variance, dim)
 
     def __sigmoid(self, x):
         """Computes sigmoid function.
@@ -94,6 +94,26 @@ class Layer:
         x[x <= 0] = 0
         x[x > 0] = 1
         return x
+    
+    def __linear(self, x):
+        """Computes linear function.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return x
+
+    def __linear_prime(self, x):
+        """Computes linear function derivative.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return 1
 
     def activation_function(self, x):
         """Computes the default activation function.
@@ -109,6 +129,8 @@ class Layer:
             return self.__tanh(x)
         elif(self.activation == 'relu'):
             return self.__relu(x)
+        elif (self.activation == 'linear'):
+            return self.__linear(x)
 
     def activation_function_prime(self, x):
         """Computes the default activation function derivative.
@@ -124,6 +146,8 @@ class Layer:
             return self.__tanh_prime(x)
         elif(self.activation == 'relu'):
             return self.__relu_prime(x)
+        elif (self.activation == 'linear'):
+            return self.__linear_prime(x)
 
     def forward(self, x):
         """Computes the output of the layer.
@@ -243,9 +267,9 @@ class Layer:
             self.weight -= dw
         else:
             self.weight -= dw
-        # weight decay for regularization
+        # weight decay for Tikhonov regularization (L2)
         # not considering the bias
-        weight_decay = lmbda * self.weight[:,1:]
+        weight_decay = 2 * lmbda * self.weight[:,1:]
         self.weight[:,1:] -= weight_decay
 
     

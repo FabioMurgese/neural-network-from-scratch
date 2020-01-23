@@ -48,7 +48,7 @@ for i, g in enumerate(grid):
     plt.title('Learning curve')
     plt.xlabel('Batch')
     plt.ylabel('Error')
-    plt.legend(['training', 'validation'], loc='upper right')
+    plt.legend(['train', 'validation'], loc='upper right')
     
     y = test_set[:,-1]
     y_pred = model.predict(test_set)

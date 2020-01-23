@@ -2,7 +2,6 @@
 import matplotlib.pyplot as plt
 import neural_network as nn
 import pandas as pd
-import numpy as np
 import datetime
 
 
@@ -13,7 +12,8 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.01, 'epochs': 2000, 'alpha': 0.02, 'lambda': 0.001, 'nhidden': 10, 'mb': 50, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
+grid = [{'lr': 0.01, 'epochs': 400, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2},
+        {'lr': 0.02, 'epochs': 200, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -25,21 +25,20 @@ for i, g in enumerate(grid):
     alpha = g["alpha"]
     lmbda = g["lambda"]
     n_hidden = g["nhidden"]
-    mb = g["mb"] # mini-batch equals to number of examples means applying SGD
+    mb = g["mb"] # mini-batch equals to number of examples means applying Gradient Descent
     loss = g["loss"]
     n_folds = g["nfolds"]
     activation = g["activation"]
     n_outputs = g["n_outputs"]
     # building the model
     model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
-    model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs, n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden, 2), activation='sigmoid', is_output=True))
+    model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden, 2), activation='linear', is_output=True))
     # k-fold cross validation
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
         print('Fold #{:d}'.format(fold))
-        print(TR.shape)
-        print(VL.shape)
         tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha, lmbda)
         grid_tr_errors.append(tr_errors)
         grid_vl_errors.append(vl_errors)
@@ -61,7 +60,6 @@ for i, g in enumerate(grid):
     plt.title('Learning curve')
     plt.xlabel('Batch')
     plt.ylabel('Error')
-    plt.legend(['training', 'validation'], loc='upper right')
+    plt.legend(['train', 'validation'], loc='upper right')
     desc = str(g)
     model.save(folder, desc, plt)
-    
