@@ -12,8 +12,7 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.01, 'epochs': 400, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2},
-        {'lr': 0.02, 'epochs': 200, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
+grid = [{'lr': 0.005, 'epochs': 1000, 'alpha': 0.4, 'lambda': 0.0001, 'nhidden': 15, 'mb': 100, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
