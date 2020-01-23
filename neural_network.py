@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-@author: antodima
-"""
 import numpy as np
 import os.path
 import pickle
@@ -433,13 +429,14 @@ class NeuralNetwork:
         -------
         the training errors, the validation errors
         """
+        n_outputs = self.layers[-1].weight.shape[1]
         tr_errors = []
         vl_errors = []
         for k in range(epochs):
             epoch_errors = []
             for b in range(0, len(training_set), mb):
-                x = np.atleast_2d(training_set[b:b+mb,:-1]) # inputs
-                y = np.atleast_2d(training_set[b:b+mb,-1]).T # targets
+                x = np.atleast_2d(training_set[b:b+mb,:-n_outputs]) # inputs
+                y = np.atleast_2d(training_set[b:b+mb, -n_outputs:]) # targets
                 error_mb = self.backprop(x, y, lr, alpha, lmbda)
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
@@ -468,8 +465,9 @@ class NeuralNetwork:
         -------
         the predicted output, the default error
         """
-        X = np.atleast_2d(x[:,:-1])
-        y = np.atleast_2d(x[:,-1]).T
+        n_outputs = self.layers[-1].weight.shape[1]
+        X = np.atleast_2d(x[:,:-n_outputs])
+        y = np.atleast_2d(x[:,-n_outputs:])
         ones = np.atleast_2d(np.ones(X.shape[0]))
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
@@ -488,7 +486,8 @@ class NeuralNetwork:
         -------
         the predicted output
         """
-        X = np.atleast_2d(x)
+        n_outputs = self.layers[-1].weight.shape[1]
+        X = np.atleast_2d(x[:,:-n_outputs])
         ones = np.atleast_2d(np.ones(X.shape[0]))
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
