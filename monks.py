@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-@author: antodima
-"""
 import matplotlib.pyplot as plt
 import neural_network as nn
 import pandas as pd
@@ -25,7 +21,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.28, 'epochs': 1000, 'alpha': 0.2, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
+grid = [{'lr': 0.39, 'epochs': 1000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 2, 'mb': 15, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -39,34 +35,12 @@ for i, g in enumerate(grid):
     n_hidden = g["nhidden"]
     mb = g["mb"] # mini-batch equals to number of examples means applying SGD
     loss = g["loss"]
-    n_folds = g["nfolds"]
     activation = g["activation"]
     # building the model
     model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1]-1,n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
-    """# k-fold cross validation
-    fold = 1
-    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
-        print('Fold #{:d}'.format(fold))
-        tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha, lmbda)
-        grid_tr_errors.append(tr_errors)
-        grid_vl_errors.append(vl_errors)
-        fold += 1
-    # mean the i-th elements of the list of k-folds"""
     tr_errors, vl_errors = model.fit(training_set, test_set, lr, epochs, mb, alpha, lmbda)
-    grid_tr_errors.append(tr_errors)
-    grid_vl_errors.append(vl_errors)
-    tr_errors = [0] * len(grid_tr_errors[0])
-    vl_errors = [0] * len(grid_vl_errors[0])
-    for lst in grid_tr_errors:
-        for i, e in enumerate(lst):
-            tr_errors[i] += e
-    for lst in grid_vl_errors:
-        for i, e in enumerate(lst):
-            vl_errors[i] += e
-    tr_errors = [x/n_folds for x in tr_errors]
-    vl_errors = [x/n_folds for x in vl_errors]
     # plot learning curve
     plt.plot(tr_errors)
     #plt.plot(vl_errors)
