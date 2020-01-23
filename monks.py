@@ -76,12 +76,11 @@ for i, g in enumerate(grid):
     plt.legend(['training', 'validation'], loc='upper right')
     desc = str(g)
     model.save(folder, desc, plt)
-    
     y = test_set[:,-1]
     y_pred= model.predict(test_set[:,:-1])
     for i, p in enumerate(y_pred):
         print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))
-    
+
     y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
     n_equals = 0
     for i, e in enumerate(y):

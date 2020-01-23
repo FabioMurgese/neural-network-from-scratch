@@ -349,9 +349,9 @@ class ACCG(LineSearch):
     #   = 'error': the algorithm found a numerical error that prevents it from
     #     continuing optimization (see min_a above)
 
-    def __init__(self, f, wrt=None, wf=0, eps=1e-6, max_f_eval=1000, mon=1e-6, m1=0.1, a_start=0.01,
+    def __init__(self, f, x=None, wf=0, eps=1e-6, max_f_eval=1000, mon=1e-6, m1=0.1, a_start=0.01,
                  tau=0.9, m_inf=-np.inf, min_a=1e-16, verbose=False, plot=False):
-        super().__init__(f, wrt, eps, max_f_eval, a_start=a_start, tau=tau, m_inf=m_inf,
+        super().__init__(f, x, eps, max_f_eval, a_start=a_start, tau=tau, m_inf=m_inf,
                          min_a=min_a, verbose=verbose, plot=plot)
         if not np.isscalar(m1):
             raise ValueError('m1 is not a real scalar')
@@ -368,8 +368,8 @@ class ACCG(LineSearch):
         self.wf = wf
 
     def minimize(self):
-        last_wrt = np.zeros((self.n,))  # last point visited in the line search
-        last_g = np.zeros((self.n,))  # gradient of last_wrt
+        last_x = np.zeros((self.n,))  # last point visited in the line search
+        last_g = np.zeros((self.n,))  # gradient of last_x
         f_eval = 1  # f() evaluations count ("common" with LSs)
 
         if self.verbose:
@@ -384,10 +384,10 @@ class ACCG(LineSearch):
         if self.wf == 3:
             d = np.zeros((self.n,))
 
-        y = self.wrt
-        past_y = self.wrt
+        y = self.x
+        past_y = self.x
         if self.mon:
-            past_x = self.wrt
+            past_x = self.x
             past_xv = np.inf
 
         if self.plot and self.n == 2:
@@ -406,7 +406,7 @@ class ACCG(LineSearch):
 
             if self.mon:  # in the monotone version
                 if v < past_xv:  # if y is better than x
-                    self.wrt = y  # then x = y
+                    self.x = y  # then x = y
                     past_xv = v
 
             # output statistics
@@ -428,16 +428,16 @@ class ACCG(LineSearch):
 
             # compute step size
             if self.m1 > 0:
-                a, xv, last_wrt, last_g, f_eval = \
-                    self.line_search.search(-g, self.wrt, last_wrt, last_g, f_eval, v, -ng)
+                a, xv, last_x, last_g, f_eval = \
+                    self.line_search.search(-g, self.x, last_x, last_g, f_eval, v, -ng)
                 if self.line_search.a_start < 0:
                     self.line_search.a_start = abs(-a)
             else:  # fixed step size
                 a = abs(self.line_search.a_start)
-                last_wrt = y + a * -g
+                last_x = y + a * -g
 
                 if self.mon:  # in the monotone version
-                    xv = self.f.function(last_wrt)
+                    xv = self.f.function(last_x)
 
             # output statistics
             if self.verbose:
@@ -453,15 +453,15 @@ class ACCG(LineSearch):
 
             # possibly plot the trajectory
             if self.plot and self.n == 2:
-                p_xy = np.vstack((self.wrt, last_wrt)).T
+                p_xy = np.vstack((self.x, last_x)).T
                 contour_axes.quiver(p_xy[0, :-1], p_xy[1, :-1], p_xy[0, 1:] - p_xy[0, :-1], p_xy[1, 1:] - p_xy[1, :-1],
                                     scale_units='xy', angles='xy', scale=1, color='k')
 
             if self.mon:  # in the monotone version
                 if xv > past_xv:  # if the new x is worse than the last x
-                    last_wrt = past_x  # then new x = last x
+                    last_x = past_x  # then new x = last x
                 else:
-                    past_x = last_wrt
+                    past_x = last_x
                     past_xv = xv
 
             if self.wf == 0:
@@ -476,13 +476,13 @@ class ACCG(LineSearch):
                 beta = self.iter / (self.iter + 3)
 
             if self.wf < 3:
-                y = last_wrt + beta * (last_wrt - self.wrt)
+                y = last_x + beta * (last_x - self.x)
             else:
                 d = (2 / (self.iter + 2)) * g + (self.iter / (self.iter + 2)) * d
                 z = -((self.iter + 1) * (self.iter + 2) * a / 4) * d
-                y = (2 / (self.iter + 3)) * z + ((self.iter + 1) / (self.iter + 3)) * last_wrt
+                y = (2 / (self.iter + 3)) * z + ((self.iter + 1) / (self.iter + 3)) * last_x
 
-            self.wrt = last_wrt
+            self.x = last_x
 
             # possibly plot the trajectory
             if self.plot and self.n == 2:
@@ -497,4 +497,4 @@ class ACCG(LineSearch):
             print()
         if self.plot and self.n == 2:
             plt.show()
-        return self.wrt, status
+        return self.x, status
