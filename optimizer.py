@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import activation_functions as afs
+
 
 class LineSearch:
 

@@ -25,7 +25,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.3, 'epochs': 1000, 'alpha': 0.1, 'lambda': 0.01, 'nhidden': 4, 'mb': 20, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
+grid = [{'lr': 0.28, 'epochs': 1000, 'alpha': 0.2, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -74,16 +74,16 @@ for i, g in enumerate(grid):
     plt.xlabel('Batch')
     plt.ylabel('Error')
     plt.legend(['training', 'validation'], loc='upper right')
-    desc = str(g)
-    model.save(folder, desc, plt)
     y = test_set[:,-1]
     y_pred= model.predict(test_set[:,:-1])
     for i, p in enumerate(y_pred):
         print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))
-
     y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
     n_equals = 0
     for i, e in enumerate(y):
         if(e == y_pred[i]):
             n_equals += 1
-    print('Accuracy: {:f}%'.format(((n_equals/len(y))*100)))
+    acc = (n_equals/len(y))*100
+    print('Accuracy: {:f}%'.format(acc))
+    desc = str(g)
+    model.save(folder, desc, plt, accuracy=acc)

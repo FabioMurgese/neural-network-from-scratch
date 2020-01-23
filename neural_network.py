@@ -33,7 +33,9 @@ class Layer:
     def __normal_weights(self, dim):
         """Initialize a matrix with normal distributed rows.
         """
-        return np.random.normal(0, 0.01, dim)
+        mean = 0
+        variance = 0.01
+        return np.random.normal(mean, variance, dim)
 
     def __sigmoid(self, x):
         """Computes sigmoid function.
@@ -287,7 +289,7 @@ class NeuralNetwork:
         """
         self.layers.append(layer)
     
-    def save(self, folder, description='', plt=None):
+    def save(self, folder, description='', plt=None, accuracy=''):
         """Save the NeuralNetwork object to disk.
         
         Returns
@@ -305,7 +307,7 @@ class NeuralNetwork:
             plt.close()
         desc_filename = os.path.join(directory, 'description')
         with open(desc_filename, 'w') as file:
-            file.write(description)
+            file.write(description + '\n' + "Accuracy=" + str(accuracy))
         return filename
     
     def load(self, filename):
