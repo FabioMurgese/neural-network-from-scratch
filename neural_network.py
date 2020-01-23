@@ -83,6 +83,16 @@ class Layer:
         """
         return np.maximum(x, 0)
 
+    def __linear(self, x):
+        """Computes linear function.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+        return x
+
     def __relu_prime(self, x):
         """Computes relu function derivative.
         
@@ -94,6 +104,17 @@ class Layer:
         x[x <= 0] = 0
         x[x > 0] = 1
         return x
+
+    def __linear_prime(self, x):
+        """Computes linear function derivative.
+
+        Parameters
+        ----------
+        x : numpy.array
+            the array of inputs
+        """
+
+        return 1
 
     def activation_function(self, x):
         """Computes the default activation function.
@@ -109,6 +130,8 @@ class Layer:
             return self.__tanh(x)
         elif(self.activation == 'relu'):
             return self.__relu(x)
+        elif (self.activation == 'linear'):
+            return self.__linear(x)
 
     def activation_function_prime(self, x):
         """Computes the default activation function derivative.
@@ -124,6 +147,9 @@ class Layer:
             return self.__tanh_prime(x)
         elif(self.activation == 'relu'):
             return self.__relu_prime(x)
+        elif (self.activation == 'linear'):
+            return self.__linear_prime(x)
+
 
     def forward(self, x):
         """Computes the output of the layer.
