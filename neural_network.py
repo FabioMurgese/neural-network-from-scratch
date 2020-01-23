@@ -238,7 +238,6 @@ class Layer:
         ad = a.T.dot(d)
         dw = lr * ad
         self.dw_old = dw
-
         # add momentum
         if(self.dw_old is not None):
             momentum = alpha * self.dw_old
@@ -256,7 +255,7 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error='mee', loss='sse', learn_alg='sgd'):
+    def __init__(self, error='mee', loss='mse', learn_alg='sgd'):
         """
         Parameters
         ----------
@@ -266,6 +265,7 @@ class NeuralNetwork:
             - mse = Mean Squared Error
         loss : string
             the default loss function (default: sse).
+            - mse = Mean Squared Error loss function
             - sse = Sum of Squares Error loss function
             - bce = Binary Cross Entropy loss function
         learn_alg : string
