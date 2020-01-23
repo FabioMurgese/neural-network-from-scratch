@@ -13,7 +13,8 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.01, 'epochs': 1000, 'alpha': 0.4, 'lambda': 0.001, 'nhidden': 10, 'mb': 50, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
+grid = [{'lr': 0.01, 'epochs': 400, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2},
+        {'lr': 0.02, 'epochs': 200, 'alpha': 0.15, 'lambda': 0.001, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -33,6 +34,7 @@ for i, g in enumerate(grid):
     # building the model
     model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 2), activation='linear', is_output=True))
     # k-fold cross validation
     fold = 1

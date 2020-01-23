@@ -269,9 +269,9 @@ class Layer:
             self.weight -= dw
         else:
             self.weight -= dw
-        # weight decay for regularization
+        # weight decay for Tikhonov regularization (L2)
         # not considering the bias
-        weight_decay = lmbda * self.weight[:,1:]
+        weight_decay = 2 * lmbda * self.weight[:,1:]
         self.weight[:,1:] -= weight_decay
 
     
