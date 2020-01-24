@@ -2,7 +2,13 @@
 import numpy as np
 
 
-class MeanSquaredError:
+class LossFunction(object):
+    
+    def delta(self, layer, right_layer, target):
+        raise NotImplementedError
+
+
+class MeanSquaredError(LossFunction):
     """Class implementation of Mean Squared Error loss function.
     """
     
@@ -31,7 +37,7 @@ class MeanSquaredError:
             return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)
     
     
-class SumSquaresError:
+class SumSquaresError(LossFunction):
     """Class implementation of Sum of Squares Error loss function.
     """
     
@@ -59,7 +65,7 @@ class SumSquaresError:
             return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)
         
 
-class BinaryCrossEntropy:
+class BinaryCrossEntropy(LossFunction):
     """Class implementation of Binary Cross Entropy loss function.
     """
     
