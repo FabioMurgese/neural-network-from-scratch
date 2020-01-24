@@ -33,7 +33,7 @@ class Layer:
         """Initialize a matrix with normal distributed rows.
         """
         self.mean = 0
-        self.variance = 0.01
+        self.variance = 1
         return np.random.normal(self.mean, self.variance, dim)
 
     def forward(self, x):
