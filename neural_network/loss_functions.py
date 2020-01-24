@@ -3,18 +3,10 @@ import numpy as np
 
 
 class LossFunction(object):
-    
-    def delta(self, layer, right_layer, target):
-        raise NotImplementedError
 
-
-class MeanSquaredError(LossFunction):
-    """Class implementation of Mean Squared Error loss function.
-    """
-    
     def delta(self, layer, right_layer, target):
         """Computes the partial derivatives of the Layer.
-        
+
         Parameters
         ----------
         layer : neural_network.Layer
@@ -23,11 +15,19 @@ class MeanSquaredError(LossFunction):
             the next layer
         target : numpy.array
             the targets
-        
+
         Returns
         -------
         the deltas
         """
+        raise NotImplementedError
+
+
+class MeanSquaredError(LossFunction):
+    """Class implementation of Mean Squared Error loss function.
+    """
+    
+    def delta(self, layer, right_layer, target):
         if(layer.is_output_layer):
             n = target.shape[0]
             output = layer.A
@@ -42,21 +42,6 @@ class SumSquaresError(LossFunction):
     """
     
     def delta(self, layer, right_layer, target):
-        """Computes the partial derivatives of the Layer.
-        
-        Parameters
-        ----------
-        layer : neural_network.Layer
-            the neural network layer
-        right_layer : neural_network.Layer
-            the next layer
-        target : numpy.array
-            the targets
-        
-        Returns
-        -------
-        the deltas
-        """
         if(layer.is_output_layer):
             output = layer.A
             error = output - target
@@ -70,21 +55,6 @@ class BinaryCrossEntropy(LossFunction):
     """
     
     def delta(self, layer, right_layer, target):
-        """Computes the partial derivatives of the Layer.
-        
-        Parameters
-        ----------
-        layer : neural_network.Layer
-            the neural network layer
-        right_layer : neural_network.Layer
-            the next layer
-        target : numpy.array
-            the targets
-        
-        Returns
-        -------
-        the deltas
-        """
         if(layer.is_output_layer):
             m = target.shape[0]
             output = layer.A

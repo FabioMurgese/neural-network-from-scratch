@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
-import neural_network as nn
+from neural_network import neural_network as nn
+import neural_network.loss_functions as losses
+import neural_network.activation_functions as activations
+import neural_network.error_functions as errors
 import pandas as pd
 import datetime
 
@@ -12,7 +15,7 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.005, 'epochs': 1000, 'alpha': 0.4, 'lambda': 0.0001, 'nhidden': 15, 'mb': 100, 'nfolds': 5, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 2}]
+grid = [{'lr': 0.005, 'epochs': 1000, 'alpha': 0.4, 'lambda': 0.0001, 'nhidden': 15, 'mb': 100, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -30,10 +33,10 @@ for i, g in enumerate(grid):
     activation = g["activation"]
     n_outputs = g["n_outputs"]
     # building the model
-    model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
+    model = nn.NeuralNetwork(error=errors.MeanEuclideanError(), loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden, 2), activation='linear', is_output=True))
+    model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
     # k-fold cross validation
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):

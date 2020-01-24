@@ -2,20 +2,23 @@
 import numpy as np
 import os.path
 import pickle
+from .loss_functions import MeanSquaredError
+from .activation_functions import Sigmoid
+from .error_functions import MeanEuclideanError
 
 
 class Layer:
     """Class implementation of a Neural Network Layer.
     """
 
-    def __init__(self, dim, activation='sigmoid', is_output=False):
+    def __init__(self, dim, activation=Sigmoid(), is_output=False):
         """
         Parameters
         ----------
         dim : tuple
             the dimension of weights matrix (e.g.: ('n° previous neurons', 'n° layer's neurons') )
-        activation : string
-            the activation function (default: 'sigmoid')
+        activation : activation_function.ActivationFunction
+            the activation function (default: Sigmoid)
         is_output : bool
             the flag that shows if the layer is an output layer or not
         """
@@ -33,122 +36,6 @@ class Layer:
         self.variance = 0.01
         return np.random.normal(self.mean, self.variance, dim)
 
-    def __sigmoid(self, x):
-        """Computes sigmoid function.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return 1.0 / (1.0 + np.exp(-np.array(x)))
-
-    def __sigmoid_prime(self, x):
-        """Computes sigmoid function derivative.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return self.__sigmoid(x) * (1 - self.__sigmoid(x))
-
-    def __tanh(self, x):
-        """Computes tanh function.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return np.tanh(x)
-
-    def __tanh_prime(self, x):
-        """Computes tanh function derivative.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return 1.0 - np.tanh(x) ** 2
-
-    def __relu(self, x):
-        """Computes relu function.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return np.maximum(x, 0)
-
-    def __relu_prime(self, x):
-        """Computes relu function derivative.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        x[x <= 0] = 0
-        x[x > 0] = 1
-        return x
-    
-    def __linear(self, x):
-        """Computes linear function.
-
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return x
-
-    def __linear_prime(self, x):
-        """Computes linear function derivative.
-
-        Parameters
-        ----------
-        x : numpy.array
-            the array of inputs
-        """
-        return 1
-
-    def activation_function(self, x):
-        """Computes the default activation function.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the input vector
-        """
-        if(self.activation == 'sigmoid'):
-            return self.__sigmoid(x)
-        elif(self.activation == 'tanh'):
-            return self.__tanh(x)
-        elif(self.activation == 'relu'):
-            return self.__relu(x)
-        elif (self.activation == 'linear'):
-            return self.__linear(x)
-
-    def activation_function_prime(self, x):
-        """Computes the default activation function derivative.
-        
-        Parameters
-        ----------
-        x : numpy.array
-            the input vector
-        """
-        if(self.activation == 'sigmoid'):
-            return self.__sigmoid_prime(x)
-        elif(self.activation == 'tanh'):
-            return self.__tanh_prime(x)
-        elif(self.activation == 'relu'):
-            return self.__relu_prime(x)
-        elif (self.activation == 'linear'):
-            return self.__linear_prime(x)
-
     def forward(self, x):
         """Computes the output of the layer.
         
@@ -162,67 +49,11 @@ class Layer:
         the output of the layer
         """
         z = np.dot(x, self.weight) # the net of the layer
-        self.A = self.activation_function(z) # sigma(net)
-        self.dZ = np.atleast_2d(self.activation_function_prime(z)) # partial derivative
+        self.A = self.activation.function(z) # sigma(net)
+        self.dZ = np.atleast_2d(self.activation.derivative(z)) # partial derivative
         return self.A
     
-    def MSE(self, y, right_layer):
-        """Computes the deltas using the chain rule of Mean Squared Error loss function.
-        
-        Parameters
-        ----------
-        y : numpy.array
-            the target values
-        right_layer : neural_network.Layer
-            the next layer
-        """
-        if self.is_output_layer:
-            n = y.shape[0]
-            error = (2 / n) * (self.A - y)
-            self.delta = np.atleast_2d(error * self.dZ)
-        else:
-            self.delta = np.atleast_2d(
-                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
-        return self.delta
-    
-    def SSE(self, y, right_layer):
-        """Computes the deltas using the chain rule of Sum of Squares Error loss function.
-        
-        Parameters
-        ----------
-        y : numpy.array
-            the target values
-        right_layer : neural_network.Layer
-            the next layer
-        """
-        if self.is_output_layer:
-            error = self.A - y
-            self.delta = np.atleast_2d(error * self.dZ)
-        else:
-            self.delta = np.atleast_2d(
-                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
-        return self.delta
-
-    def BCE(self, y, right_layer):
-        """Computes the deltas using the chain rule of Binary Cross Entropy loss function.
-        
-        Parameters
-        ----------
-        y : numpy.array
-            the target values
-        right_layer : neural_network.Layer
-            the next layer
-        """
-        if self.is_output_layer:
-            m = y.shape[0]
-            error = (1 / m) * np.sum(np.maximum(self.A, 0) - self.A * y + np.log(1 + np.exp(-np.abs(self.A))))
-            self.delta = np.atleast_2d(error * self.dZ)
-        else:
-            self.delta = np.atleast_2d(
-                np.dot(right_layer.delta, right_layer.weight.T) * self.dZ)
-        return self.delta
-	
-    def backward(self, y, right_layer, loss='mse'):
+    def backward(self, y, right_layer, loss):
         """Perform the default loss function derivative.
         
         Parameters
@@ -234,31 +65,26 @@ class Layer:
         loss : string
             the loss function (default: mse)
         """
-        if (loss == 'mse'):
-            return self.MSE(y, right_layer)
-        elif(loss == 'sse'):
-            return self.SSE(y, right_layer)
-        elif(loss == 'bce'):
-            return self.BCE(y, right_layer)
+        self.delta = loss.delta(self, right_layer, y)
+        return self.delta
 
-    def update(self, lr, left_a, alpha, lmbda):
+    def update(self, lr, left_x, alpha, lmbda):
         """Update the layer weights computing delta rule.
         
         Parameters
         ----------
         lr : float
             the learning rate
-        left_a : numpy.array
+        left_x : numpy.array
             the output of previous layer and the input of current layer
         alpha : float
             the momentum parameter
         lmbda : float
             the weight decay lambda regularization parameter
         """
-        a = np.atleast_2d(left_a)
+        x = np.atleast_2d(left_x)
         d = np.atleast_2d(self.delta)
-        ad = a.T.dot(d)
-        dw = lr * ad
+        dw = lr * x.T.dot(d)
         self.dw_old = dw
         # add momentum
         if(self.dw_old is not None):
@@ -277,21 +103,16 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error='mee', loss='mse', learn_alg='sgd'):
+    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), learn_alg='sgd'):
         """
         Parameters
         ----------
-        error : string
-            the default error function (default: mee).
-            - mee = Mean Euclidean Error
-            - mse = Mean Squared Error
-        loss : string
-            the default loss function (default: sse).
-            - mse = Mean Squared Error loss function
-            - sse = Sum of Squares Error loss function
-            - bce = Binary Cross Entropy loss function
+        error : error_functions.ErrorFunction
+            the error function (default: MeanEuclideanError).
+        loss : loss_functions.LossFunction
+            the loss function (default: MeanSquaredError).
         learn_alg : string
-            the default learning algorithm (default: sgd).
+            the learning algorithm (default: sgd).
             - sgd = Stochastic Gradient Descent
         """
         self.learning_algorithm = learn_alg
@@ -339,60 +160,8 @@ class NeuralNetwork:
         """
         with open(filename, 'rb') as file:
             return pickle.load(file)
-        
-    def MSE(self, target, output):
-        """Computes Mean Squared Error.
-        
-        Parameters
-        ----------
-        target : numpy.array
-            the targer values
-        output : numpy.array
-            the output values of the network
-        
-        Returns
-        -------
-        the mean squared error
-        """
-        return float(np.square(np.array(target) - np.array(output)).mean(axis=0))
-    
-    def MEE(self, target, output):
-        """Computes Mean Euclidean Error.
-        
-        Parameters
-        ----------
-        target : numpy.array
-            the targer values
-        output : numpy.array
-            the output values of the network
-        
-        Returns
-        -------
-        the mean euclidean error
-        """
-        N = target.shape[0]
-        return float(np.linalg.norm(np.array(output) - np.array(target)) / N)
-    
-    def error(self, target, output):
-        """Computes the default error function.
-        
-        Parameters
-        ----------
-        target : numpy.array
-            the targer values
-        output : numpy.array
-            the output values of the network
-        
-        Returns
-        -------
-        the error
-        """
-        if(self.err == 'mee'):
-            return self.MEE(target, output)
-        elif(self.err == 'mse'):
-            return self.MSE(target, output)
 
-    def backprop(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
+    def backpropagation(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
         """Perform backpropagation algorithm.
         
         Parameters
@@ -419,7 +188,7 @@ class NeuralNetwork:
         for layer in self.layers:
             a = layer.forward(a)
         # backward
-        delta = self.layers[-1].backward(y, None)
+        delta = self.layers[-1].backward(y, None, self.loss)
         for l in range(len(self.layers) - 2, -1, -1):
             delta = self.layers[l].backward(delta, self.layers[l+1], self.loss)
         a = X
@@ -427,7 +196,7 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update(lr, a, alpha, lmbda)
             a = layer.A
-        return self.error(y, self.layers[-1].A)
+        return self.err.error(y, self.layers[-1].A)
     
     def SGD(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
         """Executing SGD learning algorithm.
@@ -461,7 +230,7 @@ class NeuralNetwork:
             for b in range(0, len(training_set), mb):
                 x = np.atleast_2d(training_set[b:b+mb,:-n_outputs]) # inputs
                 y = np.atleast_2d(training_set[b:b+mb, -n_outputs:]) # targets
-                error_mb = self.backprop(x, y, lr, alpha, lmbda)
+                error_mb = self.backpropagation(x, y, lr, alpha, lmbda)
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
             tr_errors.append(error)
@@ -496,7 +265,7 @@ class NeuralNetwork:
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
             a = l.forward(a)
-        return a, self.error(y, a)
+        return a, self.err.error(y, a)
     
     def predict(self, x):
         """Computes the predicted output of the network.

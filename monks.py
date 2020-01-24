@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
-import neural_network as nn
+from neural_network import neural_network as nn
+import neural_network.loss_functions as losses
+import neural_network.activation_functions as activations
+import neural_network.error_functions as errors
 import pandas as pd
 import numpy as np
 import datetime
@@ -21,7 +24,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.39, 'epochs': 1000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 2, 'mb': 15, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse', 'n_outputs': 1}]
+grid = [{'lr': 0.39, 'epochs': 1000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 2, 'mb': 15, 'nfolds': 3, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -38,9 +41,9 @@ for i, g in enumerate(grid):
     activation = g["activation"]
     n_outputs = g["n_outputs"]
     # building the model
-    model = nn.NeuralNetwork(error='mee', loss=loss, learn_alg='sgd')
+    model = nn.NeuralNetwork(error=errors.MeanEuclideanError(), loss=loss, learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden,1), activation='sigmoid', is_output=True))
+    model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
     tr_errors, vl_errors = model.fit(training_set, test_set, lr, epochs, mb, alpha, lmbda)
     # plot learning curve
     plt.plot(tr_errors)
