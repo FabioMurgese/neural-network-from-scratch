@@ -49,7 +49,7 @@ for i, g in enumerate(grid):
     plt.plot(tr_errors)
     #plt.plot(vl_errors)
     plt.title('Learning curve')
-    plt.xlabel('Batch')
+    plt.xlabel('Epochs')
     plt.ylabel('Error')
     plt.legend(['train', 'validation'], loc='upper right')
     

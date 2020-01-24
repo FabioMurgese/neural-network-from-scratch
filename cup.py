@@ -15,7 +15,8 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.005, 'epochs': 1000, 'alpha': 0.4, 'lambda': 0.0001, 'nhidden': 15, 'mb': 100, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
+grid = [{'lr': 0.002, 'epochs': 800, 'alpha': 0.35, 'lambda': 0.0001, 'nhidden': 15, 'mb': 128, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}
+        ]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -60,7 +61,7 @@ for i, g in enumerate(grid):
     plt.plot(tr_errors)
     plt.plot(vl_errors)
     plt.title('Learning curve')
-    plt.xlabel('Batch')
+    plt.xlabel('Epochs')
     plt.ylabel('Error')
     plt.legend(['train', 'validation'], loc='upper right')
     desc = str(g)

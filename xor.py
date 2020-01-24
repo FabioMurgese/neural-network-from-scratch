@@ -28,6 +28,6 @@ tr_errors, vl_errors = model.fit(training_set, training_set, lr, epochs, mb, alp
 
 plt.plot(tr_errors)
 plt.title('Learning curve')
-plt.xlabel('Batch')
+plt.xlabel('Epochs')
 plt.ylabel('Error')
 plt.show()
