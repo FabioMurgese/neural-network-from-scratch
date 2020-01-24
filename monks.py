@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
-from neural_network import neural_network as nn
+import neural_network.neural_network as nn
 import neural_network.loss_functions as losses
 import neural_network.activation_functions as activations
 import neural_network.error_functions as errors

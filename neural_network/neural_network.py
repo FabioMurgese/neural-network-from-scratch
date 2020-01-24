@@ -228,8 +228,8 @@ class NeuralNetwork:
         for k in range(epochs):
             epoch_errors = []
             for b in range(0, len(training_set), mb):
-                x = np.atleast_2d(training_set[b:b+mb,:-n_outputs]) # inputs
-                y = np.atleast_2d(training_set[b:b+mb, -n_outputs:]) # targets
+                x = np.atleast_2d(training_set[b:b+mb, :-n_outputs])
+                y = np.atleast_2d(training_set[b:b+mb, -n_outputs:])
                 error_mb = self.backpropagation(x, y, lr, alpha, lmbda)
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
