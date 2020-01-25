@@ -82,6 +82,8 @@ class Layer:
             the momentum parameter
         lmbda : float
             the weight decay lambda regularization parameter
+        regularizer : regularizers.Regularize
+            the weight matrix regularizer
         """
         x = np.atleast_2d(left_x)
         d = np.atleast_2d(self.delta)
