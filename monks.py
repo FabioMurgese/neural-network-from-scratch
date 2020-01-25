@@ -58,7 +58,7 @@ for i, g in enumerate(grid):
     plt.xlabel('Epochs')
     plt.ylabel('Error')
     plt.legend(['train', 'validation'], loc='upper right')
-    
+
     y = test_set[:,-1]
     y_pred = model.predict(test_set)
     for i, p in enumerate(y_pred):
@@ -70,5 +70,7 @@ for i, g in enumerate(grid):
             n_equals += 1
     acc = (n_equals/len(y))*100
     print('Accuracy: {:f}%'.format(acc))
+    g["activation"] = type(activation).__name__
+    g["loss"] = type(loss).__name__
     desc = str(g)
     model.save(folder, desc, plt, accuracy=acc)

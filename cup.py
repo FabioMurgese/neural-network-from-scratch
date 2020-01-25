@@ -69,5 +69,7 @@ for i, g in enumerate(grid):
     plt.xlabel('Epochs')
     plt.ylabel('Error')
     plt.legend(['train', 'validation'], loc='upper right')
+    g["activation"] = type(activation).__name__
+    g["loss"] = type(loss).__name__
     desc = str(g)
     model.save(folder, desc, plt)
