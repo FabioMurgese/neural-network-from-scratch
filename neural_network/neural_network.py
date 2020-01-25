@@ -5,6 +5,7 @@ import pickle
 from .loss_functions import MeanSquaredError
 from .activation_functions import Sigmoid
 from .error_functions import MeanEuclideanError
+from .regularizers import L2
 
 
 class Layer:
@@ -68,7 +69,7 @@ class Layer:
         self.delta = loss.delta(self, right_layer, y)
         return self.delta
 
-    def update(self, lr, left_x, alpha, lmbda):
+    def update(self, lr, left_x, alpha, regularizer=None):
         """Update the layer weights computing delta rule.
         
         Parameters
@@ -93,17 +94,16 @@ class Layer:
             self.weight -= dw
         else:
             self.weight -= dw
-        # weight decay for Tikhonov regularization (L2)
-        # not considering the bias
-        weight_decay = 2 * lmbda * self.weight[:,1:]
-        self.weight[:,1:] -= weight_decay
+        if(regularizer is not None):
+            # perform regularization
+            self.weight = regularizer.regularize(self.weight)
 
     
 class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), learn_alg='sgd'):
+    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), regularizer=L2(lmbda=0.001), learn_alg='sgd'):
         """
         Parameters
         ----------
@@ -111,6 +111,8 @@ class NeuralNetwork:
             the error function (default: MeanEuclideanError).
         loss : loss_functions.LossFunction
             the loss function (default: MeanSquaredError).
+        regularizer : regularizers.Regularizer
+            the regularizer (default: L2)
         learn_alg : string
             the learning algorithm (default: sgd).
             - sgd = Stochastic Gradient Descent
@@ -119,6 +121,7 @@ class NeuralNetwork:
         self.layers = []
         self.err = error
         self.loss = loss
+        self.regularizer = regularizer
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -161,7 +164,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
 
-    def backpropagation(self, X, y, lr=0.1, alpha=0.5, lmbda=0.01):
+    def backpropagation(self, X, y, lr=0.1, alpha=0.5):
         """Perform backpropagation algorithm.
         
         Parameters
@@ -174,8 +177,6 @@ class NeuralNetwork:
             the learning rate (default: 0.1)
         alpha : float
             the momentum parameter
-        lmbda : float
-            the weight decay lambda regularization parameter
         
         Returns
         -------
@@ -194,11 +195,11 @@ class NeuralNetwork:
         a = X
         # adjust weights
         for layer in self.layers:
-            layer.update(lr, a, alpha, lmbda)
+            layer.update(lr, a, alpha, self.regularizer)
             a = layer.A
         return self.err.error(y, self.layers[-1].A)
     
-    def SGD(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
+    def SGD(self, training_set, validation_set, lr, epochs, mb, alpha):
         """Executing SGD learning algorithm.
         
         Parameters
@@ -215,8 +216,6 @@ class NeuralNetwork:
             the mini-batch size
         alpha : float
             the momentum parameter
-        lmbda : float
-            the weight decay lambda regularization parameter
         
         Returns
         -------
@@ -230,7 +229,7 @@ class NeuralNetwork:
             for b in range(0, len(training_set), mb):
                 x = np.atleast_2d(training_set[b:b+mb, :-n_outputs])
                 y = np.atleast_2d(training_set[b:b+mb, -n_outputs:])
-                error_mb = self.backpropagation(x, y, lr, alpha, lmbda)
+                error_mb = self.backpropagation(x, y, lr, alpha)
                 epoch_errors.append(error_mb)
             error = np.mean(epoch_errors)
             tr_errors.append(error)
@@ -240,11 +239,11 @@ class NeuralNetwork:
                     k+1, epochs, error, vl_error))
         return tr_errors, vl_errors
     
-    def fit(self, training_set, validation_set, lr, epochs, mb, alpha, lmbda):
+    def fit(self, training_set, validation_set, lr, epochs, mb, alpha):
         """Computes the default learning algorithm.
         """
         if(self.learning_algorithm == 'sgd'):
-            return self.SGD(training_set, validation_set, lr, epochs, mb, alpha, lmbda)
+            return self.SGD(training_set, validation_set, lr, epochs, mb, alpha)
     
     def validate(self, x):
         """Computes the validation of the output of the network.

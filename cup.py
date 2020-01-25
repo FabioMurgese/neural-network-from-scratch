@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
-import neural_network.neural_network as nn
-import neural_network.loss_functions as losses
-import neural_network.activation_functions as activations
-import neural_network.error_functions as errors
 import pandas as pd
 import datetime
+
+import neural_network.activation_functions as activations
+import neural_network.regularizers as regularizers
+import neural_network.error_functions as errors
+import neural_network.loss_functions as losses
+import neural_network.neural_network as nn
 
 
 # load data
@@ -25,15 +27,19 @@ for i, g in enumerate(grid):
     lr = g["lr"]
     epochs = g["epochs"]
     alpha = g["alpha"]
-    lmbda = g["lambda"]
     n_hidden = g["nhidden"]
     mb = g["mb"] # mini-batch equals to number of examples means applying Gradient Descent
     loss = g["loss"]
     n_folds = g["nfolds"]
     activation = g["activation"]
     n_outputs = g["n_outputs"]
+    lmbda = g["lambda"]
     # building the model
-    model = nn.NeuralNetwork(error=errors.MeanEuclideanError(), loss=loss, learn_alg='sgd')
+    model = nn.NeuralNetwork(
+            error=errors.MeanEuclideanError(),
+            loss=loss,
+            regularizer=regularizers.L2(lmbda),
+            learn_alg='sgd')
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
@@ -41,7 +47,7 @@ for i, g in enumerate(grid):
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
         print('Fold #{:d}'.format(fold))
-        tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha, lmbda)
+        tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha)
         grid_tr_errors.append(tr_errors)
         grid_vl_errors.append(vl_errors)
         fold += 1

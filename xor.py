@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
-import neural_network.neural_network as nn
-import neural_network.loss_functions as losses
-import neural_network.activation_functions as activations
-import neural_network.error_functions as errors
 import numpy as np
+
+import neural_network.activation_functions as activations
+import neural_network.regularizers as regularizers
+import neural_network.error_functions as errors
+import neural_network.loss_functions as losses
+import neural_network.neural_network as nn
+
 
 training_set = np.array([[0, 0, 0],
                   [0, 1, 1],
@@ -19,12 +22,15 @@ lmbda = 0.001
 n_hidden = 15
 n_outputs = 1
 mb = 4 # mini-batch equals to number of examples means applying SGD
-loss = losses.MeanSquaredError()
 
-model = nn.NeuralNetwork(error=errors.MeanEuclideanError(), loss=loss, learn_alg='sgd')
+model = nn.NeuralNetwork(
+        error=errors.MeanEuclideanError(),
+        loss=losses.MeanSquaredError(),
+        regularizer=regularizers.L2(lmbda),
+        learn_alg='sgd')
 model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activations.Sigmoid()))
 model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
-tr_errors, vl_errors = model.fit(training_set, training_set, lr, epochs, mb, alpha, lmbda)
+tr_errors, vl_errors = model.fit(training_set, training_set, lr, epochs, mb, alpha)
 
 plt.plot(tr_errors)
 plt.title('Learning curve')
