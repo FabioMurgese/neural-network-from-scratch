@@ -71,37 +71,6 @@ class Layer:
         self.delta = loss.delta(self, right_layer, y)
         return self.delta
 
-    def update(self, lr, left_x, alpha, regularizer=None):
-        """Update the layer weights computing delta rule.
-        
-        Parameters
-        ----------
-        lr : float
-            the learning rate
-        left_x : numpy.array
-            the output of previous layer and the input of current layer
-        alpha : float
-            the momentum parameter
-        lmbda : float
-            the weight decay lambda regularization parameter
-        regularizer : regularizers.Regularize
-            the weight matrix regularizer
-        """
-        x = np.atleast_2d(left_x)
-        d = np.atleast_2d(self.delta)
-        dw = lr * x.T.dot(d)
-        self.dw_old = dw
-        # add momentum
-        if(self.dw_old is not None):
-            momentum = alpha * self.dw_old
-            dw += momentum
-            self.weight -= dw
-        else:
-            self.weight -= dw
-        if(regularizer is not None):
-            # perform regularization
-            self.weight = regularizer.regularize(self.weight)
-
     
 class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
@@ -183,6 +152,31 @@ class NeuralNetwork:
         """
         tr_errors, vl_errors, self = self.optimizer.train(training_set, validation_set, self)
         return tr_errors, vl_errors
+    
+    def feedforward(self, x):
+        """Feedforward the inputs throw the network.
+        
+        Parameters
+        ----------
+        x : numpy.array
+            the inputs data
+        """
+        ones = np.atleast_2d(np.ones(x.shape[0]))
+        x = np.concatenate((ones.T, x), axis=1)
+        for layer in self.layers:
+            x = layer.forward(x)
+    
+    def compute_deltas(self, y):
+        """Computes the deltas of the network.
+        
+        Parameters
+        ----------
+        y : numpy.array
+            the targets
+        """
+        delta = self.layers[-1].backward(y, None, self.loss)
+        for l in range(len(self.layers) - 2, -1, -1):
+            delta = self.layers[l].backward(delta, self.layers[l+1], self.loss)
     
     def validate(self, x):
         """Computes the validation of the output of the network.

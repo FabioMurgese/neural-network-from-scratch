@@ -27,7 +27,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.3, 'epochs': 2000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
+grid = [{'lr': 0.01, 'epochs': 2000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 4, 'activation': activations.Sigmoid(), 'n_outputs': 1}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -40,17 +40,18 @@ for i, g in enumerate(grid):
     lmbda = g["lambda"]
     n_hidden = g["nhidden"]
     mb = g["mb"]
-    loss = g["loss"]
     activation = g["activation"]
     n_outputs = g["n_outputs"]
     # building the model
     model = nn.NeuralNetwork(
             error=errors.MeanEuclideanError(),
-            loss=loss,
+            loss=losses.MeanSquaredError(),
             regularizer=regularizers.L2(lmbda),
-            optimizer=optimizers.SGD(lr, epochs, mb, alpha))
-    model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
+            #optimizer=optimizers.SGD(lr, epochs, mb, alpha)
+            optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
+    )
+    model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+    model.add(nn.Layer(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
     tr_errors, vl_errors = model.fit(training_set, test_set)
     # plot learning curve
     plt.plot(tr_errors)
@@ -72,6 +73,6 @@ for i, g in enumerate(grid):
     acc = (n_equals/len(y))*100
     print('Accuracy: {:f}%'.format(acc))
     g["activation"] = type(activation).__name__
-    g["loss"] = type(loss).__name__
+    g["loss"] = type(model.loss).__name__
     desc = str(g)
     model.save(folder, desc, plt, accuracy=acc)    
