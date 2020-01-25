@@ -103,7 +103,7 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), regularizer=L2(lmbda=0.001), learn_alg='sgd'):
+    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), regularizer=L2(), learn_alg='sgd'):
         """
         Parameters
         ----------
