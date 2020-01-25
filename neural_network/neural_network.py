@@ -34,8 +34,8 @@ class Layer:
         """Initialize a matrix with normal distributed rows.
         """
         self.mean = 0
-        self.variance = 1
-        return np.random.normal(self.mean, self.variance, dim)
+        self.standard_deviation = 1
+        return np.random.normal(self.mean, self.standard_deviation, dim)
 
     def forward(self, x):
         """Computes the output of the layer.
