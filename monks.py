@@ -8,12 +8,13 @@ import neural_network.activation_functions as activations
 import neural_network.regularizers as regularizers
 import neural_network.error_functions as errors
 import neural_network.loss_functions as losses
+import neural_network.optimizers as optimizers
 import neural_network.neural_network as nn
 
 
 # load data
-dataset = pd.read_csv('datasets/monks/monks-3.train', delim_whitespace=True, header=None)
-dataset_test = pd.read_csv('datasets/monks/monks-3.test', delim_whitespace=True, header=None)
+dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=None)
+dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
 test_set = dataset_test.iloc[:, 1:-1].values
 # One-Hot Encoding training set
@@ -26,7 +27,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.27, 'epochs': 2500, 'alpha': 0.3, 'lambda': 0.01, 'nhidden': 3, 'mb': 20, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
+grid = [{'lr': 0.3, 'epochs': 2000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -47,10 +48,10 @@ for i, g in enumerate(grid):
             error=errors.MeanEuclideanError(),
             loss=loss,
             regularizer=regularizers.L2(lmbda),
-            learn_alg='sgd')
+            optimizer=optimizers.SGD(lr, epochs, mb, alpha))
     model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
-    tr_errors, vl_errors = model.fit(training_set, test_set, lr, epochs, mb, alpha)
+    tr_errors, vl_errors = model.fit(training_set, test_set)
     # plot learning curve
     plt.plot(tr_errors)
     #plt.plot(vl_errors)
@@ -73,4 +74,4 @@ for i, g in enumerate(grid):
     g["activation"] = type(activation).__name__
     g["loss"] = type(loss).__name__
     desc = str(g)
-    model.save(folder, desc, plt, accuracy=acc)
+    model.save(folder, desc, plt, accuracy=acc)    

@@ -7,6 +7,7 @@ import neural_network.activation_functions as activations
 import neural_network.regularizers as regularizers
 import neural_network.error_functions as errors
 import neural_network.loss_functions as losses
+import neural_network.optimizers as optimizers
 import neural_network.neural_network as nn
 
 
@@ -39,7 +40,7 @@ for i, g in enumerate(grid):
             error=errors.MeanEuclideanError(),
             loss=loss,
             regularizer=regularizers.L2(lmbda),
-            learn_alg='sgd')
+            optimizer=optimizers.SGD(lr, epochs, mb, alpha))
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
@@ -47,7 +48,7 @@ for i, g in enumerate(grid):
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
         print('Fold #{:d}'.format(fold))
-        tr_errors, vl_errors = model.fit(TR, VL, lr, epochs, mb, alpha)
+        tr_errors, vl_errors = model.fit(TR, VL)
         grid_tr_errors.append(tr_errors)
         grid_vl_errors.append(vl_errors)
         fold += 1

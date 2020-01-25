@@ -2,10 +2,12 @@
 import numpy as np
 import os.path
 import pickle
+
 from .loss_functions import MeanSquaredError
 from .activation_functions import Sigmoid
 from .error_functions import MeanEuclideanError
 from .regularizers import L2
+from .optimizers import SGD
 
 
 class Layer:
@@ -105,25 +107,24 @@ class NeuralNetwork:
     """Class implementation of an Artificial Neural Network.
     """
     
-    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), regularizer=L2(), learn_alg='sgd'):
+    def __init__(self, error=MeanEuclideanError(), loss=MeanSquaredError(), regularizer=L2(), optimizer=SGD()):
         """
         Parameters
         ----------
         error : error_functions.ErrorFunction
-            the error function (default: MeanEuclideanError).
+            the error function (default: MeanEuclideanError)
         loss : loss_functions.LossFunction
-            the loss function (default: MeanSquaredError).
+            the loss function (default: MeanSquaredError)
         regularizer : regularizers.Regularizer
             the regularizer (default: L2)
-        learn_alg : string
-            the learning algorithm (default: sgd).
-            - sgd = Stochastic Gradient Descent
+        optimizer : optimizers.Optimizer
+            the optimizer (default: SGD)
         """
-        self.learning_algorithm = learn_alg
         self.layers = []
         self.err = error
         self.loss = loss
         self.regularizer = regularizer
+        self.optimizer = optimizer
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -165,87 +166,23 @@ class NeuralNetwork:
         """
         with open(filename, 'rb') as file:
             return pickle.load(file)
-
-    def backpropagation(self, X, y, lr=0.1, alpha=0.5):
-        """Perform backpropagation algorithm.
-        
-        Parameters
-        ----------
-        X : numpy.array
-            the inputs
-        y : numpy.array
-            the targets
-        lr : float
-            the learning rate (default: 0.1)
-        alpha : float
-            the momentum parameter
-        
-        Returns
-        -------
-        the error
-        """
-        ones = np.atleast_2d(np.ones(X.shape[0]))
-        X = np.concatenate((ones.T, X), axis=1)
-        a=X
-        # feedforward
-        for layer in self.layers:
-            a = layer.forward(a)
-        # backward
-        delta = self.layers[-1].backward(y, None, self.loss)
-        for l in range(len(self.layers) - 2, -1, -1):
-            delta = self.layers[l].backward(delta, self.layers[l+1], self.loss)
-        a = X
-        # adjust weights
-        for layer in self.layers:
-            layer.update(lr, a, alpha, self.regularizer)
-            a = layer.A
-        return self.err.error(y, self.layers[-1].A)
     
-    def SGD(self, training_set, validation_set, lr, epochs, mb, alpha):
-        """Executing SGD learning algorithm.
+    def fit(self, training_set, validation_set):
+        """Computes the default optimization learning algorithm.
         
         Parameters
         ----------
         training_set : numpy.array
-            the training set (inputs and targets)
+            the training set
         validation_set : numpy.array
             the validation set
-        lr : float
-            the learning rate
-        epochs : int
-            the number of epochs
-        mb : int
-            the mini-batch size
-        alpha : float
-            the momentum parameter
         
         Returns
         -------
         the training errors, the validation errors
         """
-        n_outputs = self.layers[-1].weight.shape[1]
-        tr_errors = []
-        vl_errors = []
-        for k in range(epochs):
-            epoch_errors = []
-            for b in range(0, len(training_set), mb):
-                x = np.atleast_2d(training_set[b:b+mb, :-n_outputs])
-                y = np.atleast_2d(training_set[b:b+mb, -n_outputs:])
-                error_mb = self.backpropagation(x, y, lr, alpha)
-                epoch_errors.append(error_mb)
-            error = np.mean(epoch_errors)
-            tr_errors.append(error)
-            _, vl_error = self.validate(validation_set)
-            vl_errors.append(vl_error)
-            print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
-                    k+1, epochs, error, vl_error))
+        tr_errors, vl_errors, self = self.optimizer.train(training_set, validation_set, self)
         return tr_errors, vl_errors
-    
-    def fit(self, training_set, validation_set, lr, epochs, mb, alpha):
-        """Computes the default learning algorithm.
-        """
-        if(self.learning_algorithm == 'sgd'):
-            return self.SGD(training_set, validation_set, lr, epochs, mb, alpha)
     
     def validate(self, x):
         """Computes the validation of the output of the network.
