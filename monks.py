@@ -12,8 +12,8 @@ import neural_network.neural_network as nn
 
 
 # load data
-dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=None)
-dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=None)
+dataset = pd.read_csv('datasets/monks/monks-3.train', delim_whitespace=True, header=None)
+dataset_test = pd.read_csv('datasets/monks/monks-3.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
 test_set = dataset_test.iloc[:, 1:-1].values
 # One-Hot Encoding training set
@@ -26,7 +26,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.3, 'epochs': 3000, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 3, 'mb': 15, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
+grid = [{'lr': 0.27, 'epochs': 2500, 'alpha': 0.3, 'lambda': 0.01, 'nhidden': 3, 'mb': 20, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
