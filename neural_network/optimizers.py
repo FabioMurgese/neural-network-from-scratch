@@ -119,7 +119,7 @@ class Adam(Optimizer):
         self.epsilon = 1e-8        
     
     def train(self, training_set, validation_set, net):
-        """Executing Adam learning algorithm.
+        """Executes Adam learning algorithm.
         """
         tr_errors = []
         vl_errors = []
