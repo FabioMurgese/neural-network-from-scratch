@@ -86,16 +86,15 @@ class SGD(Optimizer):
         return net.err.error(y, net.layers[-1].A)
     
     def train(self, training_set, validation_set, net):
-        """Executing Stochastic Gradient Descent learning algorithm (with momentum).
+        """Executes Stochastic Gradient Descent learning algorithm (with momentum).
         """
         tr_errors = []
         vl_errors = []
-        n_outputs = net.layers[-1].weight.shape[1]
         for k in range(self.epochs):
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
-                x = np.atleast_2d(training_set[b:b+self.mb, :-n_outputs])
-                y = np.atleast_2d(training_set[b:b+self.mb, -n_outputs:])
+                x = np.atleast_2d(training_set[b:b+self.mb, :-net.n_outputs()])
+                y = np.atleast_2d(training_set[b:b+self.mb, -net.n_outputs():])
                 error_mb = self.__backpropagation(x, y, net)
                 epoch_errors.append(error_mb)
             tr_error = np.mean(epoch_errors)
@@ -124,9 +123,8 @@ class Adam(Optimizer):
         """
         tr_errors = []
         vl_errors = []
-        n_outputs = net.layers[-1].weight.shape[1]
-        X = np.atleast_2d(training_set[:, :-n_outputs])
-        y = np.atleast_2d(training_set[:, -n_outputs:])
+        X = np.atleast_2d(training_set[:, :-net.n_outputs()])
+        y = np.atleast_2d(training_set[:, -net.n_outputs():])
         m = [0] * len(net.layers)
         v = [0] * len(net.layers)
         for t in range(1, self.epochs+1):

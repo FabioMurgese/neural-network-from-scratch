@@ -3,9 +3,9 @@ import numpy as np
 import os.path
 import pickle
 
+from .error_functions import MeanEuclideanError
 from .loss_functions import MeanSquaredError
 from .activation_functions import Sigmoid
-from .error_functions import MeanEuclideanError
 from .regularizers import L2
 from .optimizers import SGD
 
@@ -94,6 +94,14 @@ class NeuralNetwork:
         self.loss = loss
         self.regularizer = regularizer
         self.optimizer = optimizer
+    
+    def n_outputs(self):
+        """
+        Returns
+        -------
+        the number of outputs of the network
+        """
+        return self.layers[-1].weight.shape[1]
         
     def add(self, layer):
         """Add a new layer to the network.
@@ -190,9 +198,8 @@ class NeuralNetwork:
         -------
         the predicted output, the default error
         """
-        n_outputs = self.layers[-1].weight.shape[1]
-        X = np.atleast_2d(x[:,:-n_outputs])
-        y = np.atleast_2d(x[:,-n_outputs:])
+        X = np.atleast_2d(x[:,:-self.n_outputs()])
+        y = np.atleast_2d(x[:,-self.n_outputs():])
         ones = np.atleast_2d(np.ones(X.shape[0]))
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
@@ -211,8 +218,7 @@ class NeuralNetwork:
         -------
         the predicted output
         """
-        n_outputs = self.layers[-1].weight.shape[1]
-        X = np.atleast_2d(x[:,:-n_outputs])
+        X = np.atleast_2d(x[:,:-self.n_outputs()])
         ones = np.atleast_2d(np.ones(X.shape[0]))
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
