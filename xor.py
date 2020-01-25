@@ -21,7 +21,7 @@ alpha = 0.4
 lmbda = 0.001
 n_hidden = 15
 n_outputs = 1
-mb = 4 # mini-batch equals to number of examples means applying SGD
+mb = 4
 
 model = nn.NeuralNetwork(
         error=errors.MeanEuclideanError(),

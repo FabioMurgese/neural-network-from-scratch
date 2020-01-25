@@ -28,7 +28,7 @@ for i, g in enumerate(grid):
     epochs = g["epochs"]
     alpha = g["alpha"]
     n_hidden = g["nhidden"]
-    mb = g["mb"] # mini-batch equals to number of examples means applying Gradient Descent
+    mb = g["mb"]
     loss = g["loss"]
     n_folds = g["nfolds"]
     activation = g["activation"]
@@ -69,5 +69,7 @@ for i, g in enumerate(grid):
     plt.xlabel('Epochs')
     plt.ylabel('Error')
     plt.legend(['train', 'validation'], loc='upper right')
+    g["activation"] = type(activation).__name__
+    g["loss"] = type(loss).__name__
     desc = str(g)
     model.save(folder, desc, plt)
