@@ -116,7 +116,7 @@ class Adam(Optimizer):
         self.epochs = epochs
         self.beta_1 = 0.9
         self.beta_2 = 0.999
-        self.epsilon = 1e-8        
+        self.epsilon = 1e-8
     
     def train(self, training_set, validation_set, net):
         """Executes Adam learning algorithm.
@@ -125,8 +125,8 @@ class Adam(Optimizer):
         vl_errors = []
         X = np.atleast_2d(training_set[:, :-net.n_outputs()])
         y = np.atleast_2d(training_set[:, -net.n_outputs():])
-        m = [0] * len(net.layers)
-        v = [0] * len(net.layers)
+        m = [0] * len(net.layers) # first moments
+        v = [0] * len(net.layers) # second moments
         for t in range(1, self.epochs+1):
             # feedforward
             net.feedforward(X)
@@ -135,17 +135,24 @@ class Adam(Optimizer):
             # adjust weights
             ones = np.atleast_2d(np.ones(X.shape[0]))
             x = np.concatenate((ones.T, X), axis=1)
-            a = x
             # apply Adam weight update for each layer
             for i, layer in enumerate(net.layers):
-                g = np.atleast_2d(a.T.dot(layer.delta)) # the gradient of the layer
+                # the gradient of the layer
+                g = np.atleast_2d(x.T.dot(layer.delta))
+                # update biased first moment estimate. 
+                # the 1st moment is the exponential average of gradients along weights.
                 m[i] = self.beta_1 * m[i] + (1 - self.beta_1) * g
+                # update biased second raw moment estimate.
+                # the 2nd moment is the exponential average of squares of gradients along weights
                 v[i] = self.beta_2 * v[i] + (1 - self.beta_2) * (g ** 2)
+                # compute bias-corrected first moment estimate
                 m_hat = m[i] / (1 - (self.beta_1 ** t))
+                # compute bias-corrected second raw moment estimate
                 v_hat = v[i] / (1 - (self.beta_2 ** t))
+                # update parameters
                 dw = self.alpha * m_hat / (np.sqrt(v_hat) + self.epsilon)
                 layer.weight -= dw
-                a = layer.A
+                x = layer.A
             tr_error = net.err.error(y, net.layers[-1].A)
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
