@@ -18,7 +18,7 @@ training_set = dataset.iloc[:,:].values
 test_set = dataset_test.iloc[:,:].values
 
 # grid search
-grid = [{'lr': 0.002, 'epochs': 2000, 'alpha': 0.4, 'lambda': 0.00001, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
+grid = [{'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-06, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -41,9 +41,12 @@ for i, g in enumerate(grid):
             loss=loss,
             regularizer=regularizers.L2(lmbda),
             optimizer=optimizers.SGD(lr, epochs, mb, alpha))
+            #optimizer=optimizers.Adam(alpha=lr, epochs=epochs))
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
+
+    start_time = datetime.datetime.now()
     # k-fold cross validation
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
@@ -52,6 +55,10 @@ for i, g in enumerate(grid):
         grid_tr_errors.append(tr_errors)
         grid_vl_errors.append(vl_errors)
         fold += 1
+    end_time = datetime.datetime.now()
+    time = end_time - start_time
+    print("Trained in {0} seconds".format(str(time.total_seconds())))
+
     # mean the i-th elements of the list of k-folds
     tr_errors = [0] * len(grid_tr_errors[0])
     vl_errors = [0] * len(grid_vl_errors[0])
@@ -74,3 +81,6 @@ for i, g in enumerate(grid):
     g["loss"] = type(loss).__name__
     desc = str(g)
     model.save(folder, desc, plt)
+    model.predict(test_set, save_csv=True)
+#model = nn.NeuralNetwork().load('models/cup/20200124_125548_1/20200124_192433_1.pkl')
+#model.predict(test_set, save_csv=True)

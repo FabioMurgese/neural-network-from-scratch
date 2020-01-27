@@ -206,7 +206,7 @@ class NeuralNetwork:
             a = l.forward(a)
         return a, self.err.error(y, a)
     
-    def predict(self, x):
+    def predict(self, x, save_csv=False):
         """Computes the predicted output of the network.
         
         Parameters
@@ -218,12 +218,13 @@ class NeuralNetwork:
         -------
         the predicted output
         """
-        X = np.atleast_2d(x[:,:-self.n_outputs()])
-        ones = np.atleast_2d(np.ones(X.shape[0]))
-        a = np.concatenate((ones.T, X), axis=1)
+        ones = np.atleast_2d(np.ones(x.shape[0]))
+        x = np.concatenate((ones.T, x), axis=1)
         for l in self.layers:
-            a = l.forward(a)
-        return a
+            x = l.forward(x)
+        if save_csv:
+            np.savetxt('predictions.csv', x, delimiter=',')
+        return x
 
 
 def k_fold_cross_validation(X, K, shuffle=True):

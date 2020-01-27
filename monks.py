@@ -47,8 +47,8 @@ for i, g in enumerate(grid):
             error=errors.MeanEuclideanError(),
             loss=losses.MeanSquaredError(),
             regularizer=regularizers.L2(lmbda),
-            #optimizer=optimizers.SGD(lr, epochs, mb, alpha)
-            optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
+            optimizer=optimizers.SGD(lr, epochs, mb, alpha)
+            #optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
     )
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
@@ -62,7 +62,7 @@ for i, g in enumerate(grid):
     plt.legend(['train', 'validation'], loc='upper right')
 
     y = test_set[:,-1]
-    y_pred = model.predict(test_set)
+    y_pred = model.predict(test_set[:,:-1])
     for i, p in enumerate(y_pred):
         print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))
     y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
