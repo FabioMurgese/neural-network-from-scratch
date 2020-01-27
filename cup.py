@@ -14,8 +14,9 @@ import neural_network.neural_network as nn
 # load data
 dataset = pd.read_csv('datasets/cup/ML-CUP19-TR.csv', header=None)
 dataset_test = pd.read_csv('datasets/cup/ML-CUP19-TS.csv', header=None)
-training_set = dataset.iloc[:,:].values
-test_set = dataset_test.iloc[:,:].values
+training_set = dataset.iloc[:1300,:].values
+test_set = dataset.iloc[1301:,:].values
+blind_test_set = dataset_test.iloc[:,:].values
 
 # grid search
 grid = [{'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-06, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
