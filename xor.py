@@ -31,7 +31,7 @@ model = nn.NeuralNetwork(
         optimizer=optimizers.SGD(lr, epochs, mb, alpha))
 model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activations.Sigmoid()))
 model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
-tr_errors, vl_errors = model.fit(training_set, training_set)
+tr_errors, vl_errors, _, _ = model.fit(training_set, training_set)
 
 plt.plot(tr_errors)
 plt.title('Learning curve')

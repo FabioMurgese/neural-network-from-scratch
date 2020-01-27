@@ -144,7 +144,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
     
-    def fit(self, training_set, validation_set):
+    def fit(self, training_set, validation_set, compute_accuracy):
         """Computes the default optimization learning algorithm.
         
         Parameters
@@ -158,8 +158,8 @@ class NeuralNetwork:
         -------
         the training errors, the validation errors
         """
-        tr_errors, vl_errors, self = self.optimizer.train(training_set, validation_set, self)
-        return tr_errors, vl_errors
+        tr_errors, vl_errors, tr_accuracy, vl_accuracy, self = self.optimizer.train(training_set, validation_set, self, compute_accuracy)
+        return tr_errors, vl_errors, tr_accuracy, vl_accuracy
     
     def feedforward(self, x):
         """Feedforward the inputs throw the network.
@@ -225,6 +225,15 @@ class NeuralNetwork:
         if save_csv:
             np.savetxt('predictions.csv', x, delimiter=',')
         return x
+
+    def compute_accuracy(self, targets, predictions):
+        predictions = [1 if x >= 0.5 else 0 for x in predictions]
+        n_equals = 0
+        for i, e in enumerate(targets):
+            if (e == predictions[i]):
+                n_equals += 1
+        accuracy = (n_equals / len(targets)) * 100
+        return accuracy
 
 
 def k_fold_cross_validation(X, K, shuffle=True):

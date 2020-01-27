@@ -85,11 +85,13 @@ class SGD(Optimizer):
             a = layer.A
         return net.err.error(y, net.layers[-1].A)
     
-    def train(self, training_set, validation_set, net):
+    def train(self, training_set, validation_set, net, compute_accuracy=False):
         """Executes Stochastic Gradient Descent learning algorithm (with momentum).
         """
         tr_errors = []
         vl_errors = []
+        tr_accuracy = []
+        vl_accuracy = []
         for k in range(self.epochs):
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
@@ -103,7 +105,10 @@ class SGD(Optimizer):
             vl_errors.append(vl_error)
             print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
                     k+1, self.epochs, tr_error, vl_error))
-        return tr_errors, vl_errors, net
+            if compute_accuracy:
+                tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
+                vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
+        return tr_errors, vl_errors, tr_accuracy, vl_accuracy, net
         
 
 class Adam(Optimizer):
@@ -118,11 +123,13 @@ class Adam(Optimizer):
         self.beta_2 = 0.999
         self.epsilon = 1e-8
     
-    def train(self, training_set, validation_set, net):
+    def train(self, training_set, validation_set, net, compute_accuracy=False):
         """Executes Adam learning algorithm.
         """
         tr_errors = []
         vl_errors = []
+        tr_accuracy = []
+        vl_accuracy = []
         X = np.atleast_2d(training_set[:, :-net.n_outputs()])
         y = np.atleast_2d(training_set[:, -net.n_outputs():])
         m = [0] * len(net.layers) # first moments
@@ -159,4 +166,7 @@ class Adam(Optimizer):
             vl_errors.append(vl_error)
             print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
                     t, self.epochs, tr_error, vl_error))
-        return tr_errors, vl_errors, net
+            if compute_accuracy:
+                tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
+                vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
+        return tr_errors, vl_errors, tr_accuracy, vl_accuracy, net

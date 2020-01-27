@@ -51,7 +51,7 @@ for i, g in enumerate(grid):
     fold = 1
     for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
         print('Fold #{:d}'.format(fold))
-        tr_errors, vl_errors = model.fit(TR, VL)
+        tr_errors, vl_errors, _, _ = model.fit(TR, VL)
         grid_tr_errors.append(tr_errors)
         grid_vl_errors.append(vl_errors)
         fold += 1
