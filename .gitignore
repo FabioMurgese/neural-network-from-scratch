@@ -2,3 +2,7 @@ __pycache__/
 neural_network/__pycache__/
 .idea/
 runs/
+
+predictions.csv
+
+report/.~lock.ML-19-Report-v1.doc#

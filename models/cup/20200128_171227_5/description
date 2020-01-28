@@ -2,3 +2,4 @@
 Mean Euclidean Error training set: 0.10630322073294829
 Mean Euclidean Error validation set: 0.10479454229097537
 Mean Euclidean Error inner test set: 0.07555823085429782
+Trained in 6.927805 seconds

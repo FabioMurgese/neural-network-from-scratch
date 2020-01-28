@@ -1,5 +1,4 @@
 {'lr': 0.27, 'epochs': 500, 'alpha': 0.5, 'lambda': 0.0001, 'nhidden': 4, 'mb': 10, 'nfolds': 4, 'activation': 'Sigmoid', 'loss': 'MeanSquaredError', 'n_outputs': 1}
 Accuracy: 100.0
 MSE training set: 0.0028269408327194897
-MSE validation set: 0.006344124288292082
-MSE inner test set: 0.006344124288292082
+MSE test set: 0.006344124288292082

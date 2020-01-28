@@ -19,7 +19,16 @@ test_set = dataset.iloc[1300:, :].values
 blind_test_set = dataset_test.iloc[:, :].values
 
 # grid search
-grid = [{'lr': 0.002, 'epochs': 500, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
+grid = [{'lr': 0.01, 'epochs': 400, 'alpha': 0.15, 'lambda': 1e-03, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.3, 'lambda': 1e-04, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 1e-04, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 1e-04, 'nhidden': 25, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.004, 'epochs': 600, 'alpha': 0.12, 'lambda': 1e-04, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 500, 'alpha': 0.08, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.08, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.005, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
+        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-06, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)

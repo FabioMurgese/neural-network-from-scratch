@@ -13,8 +13,8 @@ import neural_network.neural_network as nn
 
 
 # load data
-dataset = pd.read_csv('datasets/monks/monks-1.train', delim_whitespace=True, header=None)
-dataset_test = pd.read_csv('datasets/monks/monks-1.test', delim_whitespace=True, header=None)
+dataset = pd.read_csv('datasets/monks/monks-3.train', delim_whitespace=True, header=None)
+dataset_test = pd.read_csv('datasets/monks/monks-3.test', delim_whitespace=True, header=None)
 training_set = dataset.iloc[:, 1:-1].values
 test_set = dataset_test.iloc[:, 1:-1].values
 # One-Hot Encoding training set
@@ -27,7 +27,7 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.4, 'epochs': 1000, 'alpha': 0.3, 'lambda': 1e-4, 'nhidden': 3, 'mb': 15, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
+grid = [{'lr': 0.23, 'epochs': 400, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 4, 'mb': 20, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -44,8 +44,9 @@ for i, g in enumerate(grid):
     n_outputs = g["n_outputs"]
     # building the model
     model = nn.NeuralNetwork(
-            error=errors.MeanEuclideanError(),
+            error=errors.MeanSquaredError(),
             loss=losses.MeanSquaredError(),
+            #regularizer=None,
             regularizer=regularizers.L2(lmbda),
             optimizer=optimizers.SGD(lr, epochs, mb, alpha)
             #optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
@@ -53,6 +54,8 @@ for i, g in enumerate(grid):
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
     tr_errors, vl_errors, tr_accuracy, vl_accuracy = model.fit(training_set, test_set, True)
+
+    _, MSE_test_set = model.validate(test_set)
 
     # plot learning curve
     learning_img, plt1 = plt.subplots()
@@ -73,13 +76,14 @@ for i, g in enumerate(grid):
     plt2.set_xlabel("Epochs")
     plt2.set_ylabel("% Accuracy")
     plt2.legend(['train', 'validation'], loc='lower right')
-    accuracy_img.show()
+    #accuracy_img.show()
     plt.close(accuracy_img)
 
     y = test_set[:, -1]
     y_pred = model.predict(test_set[:, :-1])
+    """
     for i, p in enumerate(y_pred):
-        print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))
+        print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))"""
     y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
     n_equals = 0
     for i, e in enumerate(y):
@@ -89,5 +93,6 @@ for i, g in enumerate(grid):
     print('Accuracy: {:f}%'.format(acc))
     g["activation"] = type(activation).__name__
     g["loss"] = type(model.loss).__name__
-    desc = str(g) + '\nAccuracy: ' + str(acc)
+    desc = str(g) + '\nAccuracy: ' + str(acc) + "\nMSE training set: {0}".format(tr_errors[-1]) \
+                        + "\nMSE test set: {0}".format(MSE_test_set)
     model.save(folder, desc, learning_img, accuracy_img)
