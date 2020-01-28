@@ -58,7 +58,7 @@ class BinaryCrossEntropy(LossFunction):
         if(layer.is_output_layer):
             m = target.shape[0]
             output = layer.A
-            error = (1 / m) * np.sum(np.maximum(output, 0) - output * target + np.log(1 + np.exp(-np.abs(output))))
+            error = -((1 / m) * np.sum(np.maximum(output, 0) - output * target + np.log(1 + np.exp(-np.abs(output)))))
             return np.atleast_2d(error * layer.dZ)
         else:
             return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)

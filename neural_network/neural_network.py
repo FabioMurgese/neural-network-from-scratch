@@ -113,7 +113,7 @@ class NeuralNetwork:
         """
         self.layers.append(layer)
     
-    def save(self, folder, description='', plt=None, accuracy=''):
+    def save(self, folder, description='', fig1=None, fig2=None, accuracy=''):
         """Save the NeuralNetwork object to disk.
         
         Returns
@@ -126,9 +126,10 @@ class NeuralNetwork:
             os.makedirs(directory)
         with open(filename, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
-        if(plt is not None):
-            plt.savefig(os.path.join(directory, 'learning_curve.png'))
-            plt.close()
+        if(fig1 is not None):
+            fig1.savefig(os.path.join(directory, 'learning_curve.png'))
+        if (fig2 is not None):
+            fig2.savefig(os.path.join(directory, 'accuracy_curve.png'))
         desc_filename = os.path.join(directory, 'description')
         with open(desc_filename, 'w') as file:
             file.write(description + '\n' + "Accuracy=" + str(accuracy))
@@ -144,7 +145,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
     
-    def fit(self, training_set, validation_set, compute_accuracy):
+    def fit(self, training_set, validation_set, compute_accuracy=False):
         """Computes the default optimization learning algorithm.
         
         Parameters

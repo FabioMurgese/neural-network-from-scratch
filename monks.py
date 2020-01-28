@@ -55,24 +55,26 @@ for i, g in enumerate(grid):
     tr_errors, vl_errors, tr_accuracy, vl_accuracy = model.fit(training_set, test_set, True)
 
     # plot learning curve
-    plt.plot(tr_errors)
-    plt.plot(vl_errors)
-    plt.title('Learning curve')
-    plt.xlabel('Epochs')
-    plt.ylabel('Error')
-    plt.legend(['train', 'validation'], loc='upper right')
-    plt.show()
-    plt.close()
+    learning_img, plt1 = plt.subplots()
+    plt1.plot(tr_errors)
+    plt1.plot(vl_errors)
+    plt1.set_title("Learning curve")
+    plt1.set_xlabel("Epochs")
+    plt1.set_ylabel("Error")
+    plt1.legend(['train', 'validation'], loc='upper right')
+    learning_img.show()
+    plt.close(learning_img)
 
     # plot accuracy curve
-    plt.plot(tr_accuracy)
-    plt.plot(vl_accuracy)
-    plt.title('Accuracy curve')
-    plt.xlabel('Epochs')
-    plt.ylabel('% Accuracy')
-    plt.legend(['train', 'validation'], loc='bottom right')
-    plt.show()
-    plt.close()
+    accuracy_img, plt2 = plt.subplots()
+    plt2.plot(tr_accuracy)
+    plt2.plot(vl_accuracy)
+    plt2.set_title("Accuracy")
+    plt2.set_xlabel("Epochs")
+    plt2.set_ylabel("% Accuracy")
+    plt2.legend(['train', 'validation'], loc='bottom right')
+    accuracy_img.show()
+    plt.close(accuracy_img)
 
     y = test_set[:,-1]
     y_pred = model.predict(test_set[:,:-1])
@@ -88,4 +90,4 @@ for i, g in enumerate(grid):
     g["activation"] = type(activation).__name__
     g["loss"] = type(model.loss).__name__
     desc = str(g)
-    model.save(folder, desc, plt, accuracy=acc)
+    model.save(folder, desc, learning_img, accuracy_img, accuracy=acc)
