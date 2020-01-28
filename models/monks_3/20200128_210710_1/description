@@ -1,0 +1,6 @@
+{'lr': 0.23, 'epochs': 400, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 4, 'mb': 20, 'nfolds': 4, 'activation': 'Sigmoid', 'loss': 'MeanSquaredError', 'n_outputs': 1}
+Tikhonov Regularization
+Accuracy Training Set: 95.081967
+Accuracy Test Set: 96.296296
+MSE training set: 0.03595914086286526
+MSE test set: 0.037319801250447156
