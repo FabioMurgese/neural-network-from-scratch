@@ -1,2 +1,0 @@
-{'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 0.0001, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': <neural_network.activation_functions.Sigmoid object at 0x7fbbcc326908>, 'loss': <neural_network.loss_functions.MeanSquaredError object at 0x7fbbcc13d4a8>, 'n_outputs': 2}
-Accuracy=

@@ -1,2 +1,0 @@
-{'lr': 0.39, 'epochs': 1500, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 2, 'mb': 15, 'nfolds': 3, 'activation': 'sigmoid', 'loss': 'mse'}
-Accuracy=100.0

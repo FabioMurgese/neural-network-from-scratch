@@ -1,0 +1,4 @@
+{'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 0.0001, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': 'Sigmoid', 'loss': 'MeanSquaredError', 'n_outputs': 2}
+Mean Euclidean Error training set: 0.10507138450528841
+Mean Euclidean Error validation set: 0.14227325196363852
+Mean Euclidean Error inner test set: 0.0809727463669672

@@ -1,0 +1,4 @@
+{'lr': 0.3, 'epochs': 500, 'alpha': 0.3, 'lambda': 0.001, 'nhidden': 3, 'mb': 20, 'nfolds': 4, 'activation': 'Sigmoid', 'loss': 'MeanSquaredError', 'n_outputs': 1}
+Accuracy: 100.0
+MSE training set: 0.00277041475259221
+MSE test set: 0.0032408105583579473
