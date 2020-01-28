@@ -51,9 +51,9 @@ class Layer:
         -------
         the output of the layer
         """
-        z = np.dot(x, self.weight) # the net of the layer
-        self.A = self.activation.function(z) # sigma(net)
-        self.dZ = np.atleast_2d(self.activation.derivative(z)) # partial derivative
+        z = np.dot(x, self.weight)  # the net of the layer
+        self.A = self.activation.function(z)  # sigma(net)
+        self.dZ = np.atleast_2d(self.activation.derivative(z))  # partial derivative
         return self.A
     
     def backward(self, y, right_layer, loss):
@@ -113,7 +113,7 @@ class NeuralNetwork:
         """
         self.layers.append(layer)
     
-    def save(self, folder, description='', fig1=None, fig2=None, accuracy=''):
+    def save(self, folder, description='', fig1=None, fig2=None):
         """Save the NeuralNetwork object to disk.
         
         Returns
@@ -132,7 +132,7 @@ class NeuralNetwork:
             fig2.savefig(os.path.join(directory, 'accuracy_curve.png'))
         desc_filename = os.path.join(directory, 'description')
         with open(desc_filename, 'w') as file:
-            file.write(description + '\n' + "Accuracy=" + str(accuracy))
+            file.write(description)
         return filename
     
     def load(self, filename):
@@ -199,8 +199,8 @@ class NeuralNetwork:
         -------
         the predicted output, the default error
         """
-        X = np.atleast_2d(x[:,:-self.n_outputs()])
-        y = np.atleast_2d(x[:,-self.n_outputs():])
+        X = np.atleast_2d(x[:, :-self.n_outputs()])
+        y = np.atleast_2d(x[:, -self.n_outputs():])
         ones = np.atleast_2d(np.ones(X.shape[0]))
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
@@ -214,7 +214,8 @@ class NeuralNetwork:
         ----------
         x : numpy.array
             the inputs
-            
+        save_csv : bool
+            the flag that shows if a .csv file has to be saved
         Returns
         -------
         the predicted output

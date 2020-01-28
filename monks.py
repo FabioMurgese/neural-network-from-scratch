@@ -89,5 +89,5 @@ for i, g in enumerate(grid):
     print('Accuracy: {:f}%'.format(acc))
     g["activation"] = type(activation).__name__
     g["loss"] = type(model.loss).__name__
-    desc = str(g)
-    model.save(folder, desc, learning_img, accuracy_img, accuracy=acc)
+    desc = str(g) + '\nAccuracy: ' + str(acc)
+    model.save(folder, desc, learning_img, accuracy_img)

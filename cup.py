@@ -14,12 +14,12 @@ import neural_network.neural_network as nn
 # load data
 dataset = pd.read_csv('datasets/cup/ML-CUP19-TR.csv', header=None)
 dataset_test = pd.read_csv('datasets/cup/ML-CUP19-TS.csv', header=None)
-training_set = dataset.iloc[:1300,:].values
-test_set = dataset.iloc[1301:,:].values
-blind_test_set = dataset_test.iloc[:,:].values
+training_set = dataset.iloc[:1300, :].values
+test_set = dataset.iloc[1300:, :].values
+blind_test_set = dataset_test.iloc[:, :].values
 
 # grid search
-grid = [{'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-06, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
+grid = [{'lr': 0.002, 'epochs': 500, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -60,6 +60,9 @@ for i, g in enumerate(grid):
     time = end_time - start_time
     print("Trained in {0} seconds".format(str(time.total_seconds())))
 
+    _, MEE_inner_test_set = model.validate(test_set)
+    print("Mean Euclidean Error inner test_set: {0}".format(MEE_inner_test_set))
+
     # mean the i-th elements of the list of k-folds
     tr_errors = [0] * len(grid_tr_errors[0])
     vl_errors = [0] * len(grid_vl_errors[0])
@@ -82,22 +85,13 @@ for i, g in enumerate(grid):
     plt1.legend(['train', 'validation'], loc='upper right')
     learning_img.show()
     plt.close(learning_img)
-    """
-    # plot accuracy curve
-    accuracy_img, plt2 = plt.subplots()
-    plt2.plot(tr_accuracy)
-    plt2.plot(vl_accuracy)
-    plt2.set_title("Accuracy")
-    plt2.set_xlabel("Epochs")
-    plt2.set_ylabel("% Accuracy")
-    plt2.legend(['train', 'validation'], loc='lower right')
-    accuracy_img.show()
-    plt.close(accuracy_img)"""
 
     g["activation"] = type(activation).__name__
     g["loss"] = type(loss).__name__
-    desc = str(g)
+    desc = str(g) + "\nMean Euclidean Error training set: {0}".format(tr_errors[-1]) \
+                        + "\nMean Euclidean Error validation set: {0}".format(vl_errors[-1]) \
+                        + "\nMean Euclidean Error inner test set: {0}".format(MEE_inner_test_set)
     model.save(folder, desc, learning_img)
-    model.predict(test_set, save_csv=True)
+    model.predict(test_set[:, :-2], save_csv=True)
 #model = nn.NeuralNetwork().load('models/cup/20200124_125548_1/20200124_192433_1.pkl')
 #model.predict(test_set, save_csv=True)
