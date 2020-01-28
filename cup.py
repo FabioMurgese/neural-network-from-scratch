@@ -90,7 +90,7 @@ for i, g in enumerate(grid):
     plt2.set_title("Accuracy")
     plt2.set_xlabel("Epochs")
     plt2.set_ylabel("% Accuracy")
-    plt2.legend(['train', 'validation'], loc='bottom right')
+    plt2.legend(['train', 'validation'], loc='lower right')
     accuracy_img.show()
     plt.close(accuracy_img)"""
 

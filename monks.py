@@ -72,12 +72,12 @@ for i, g in enumerate(grid):
     plt2.set_title("Accuracy")
     plt2.set_xlabel("Epochs")
     plt2.set_ylabel("% Accuracy")
-    plt2.legend(['train', 'validation'], loc='bottom right')
+    plt2.legend(['train', 'validation'], loc='lower right')
     accuracy_img.show()
     plt.close(accuracy_img)
 
-    y = test_set[:,-1]
-    y_pred = model.predict(test_set[:,:-1])
+    y = test_set[:, -1]
+    y_pred = model.predict(test_set[:, :-1])
     for i, p in enumerate(y_pred):
         print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))
     y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
