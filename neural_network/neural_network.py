@@ -248,3 +248,36 @@ def k_fold_cross_validation(X, K, shuffle=True):
     for tr_index, val_index in kf.split(X):
         training, validation = X[tr_index], X[val_index]
         yield training, validation
+
+def get_grid_search(*args):
+    """Get the cartesian product for a grid search 
+    given a list of lists of parameters.
+    
+    Parameters
+    ----------
+    args : *args
+        [[learning rates      ], 
+         [epochs              ],
+         [alphas              ],
+         [lambdas             ],
+         [hidden units        ],
+         [minibatches         ],
+         [number of folds     ],
+         [activation functions]]
+    
+    Returns
+    -------
+    the grid search
+    """
+    import itertools
+    grid = []
+    for e in itertools.product(*args):
+        grid.append({'lr': e[0],
+                     'epochs': e[1],
+                     'alpha': e[2],
+                     'lambda': e[3],
+                     'nhidden': e[4],
+                     'mb': e[5],
+                     'nfolds': e[6],
+                     'activation': e[7]})
+    return grid

@@ -18,17 +18,19 @@ training_set = dataset.iloc[:1300, :].values
 test_set = dataset.iloc[1300:, :].values
 blind_test_set = dataset_test.iloc[:, :].values
 
+# model selection
 # grid search
-grid = [{'lr': 0.01, 'epochs': 400, 'alpha': 0.15, 'lambda': 1e-03, 'nhidden': 10, 'mb': 200, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.3, 'lambda': 1e-04, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 1e-04, 'nhidden': 15, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 4000, 'alpha': 0.06, 'lambda': 1e-04, 'nhidden': 25, 'mb': 300, 'nfolds': 8, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.004, 'epochs': 600, 'alpha': 0.12, 'lambda': 1e-04, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 500, 'alpha': 0.08, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.08, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.005, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2},
-        {'lr': 0.002, 'epochs': 1000, 'alpha': 0.2, 'lambda': 1e-06, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 2}]
+grid = nn.get_grid_search(
+        [0.1, 0.01, 0.001, 0.2, 0.02, 0.002, 0.3, 0.03, 0.003, 0.4, 0.04, 0.004], # learning rates
+        [600, 1200, 2500], # epochs
+        [0.01, 0.1, 0.2, 0.3, 0.4], # alphas
+        [0.001, 0.0001, 0.00001, 0.000001, 0.0000001], # lambdas
+        [7, 20, 50, 100], # hidden units
+        [50, 120, 250, 300, 350], # mini-batches
+        [5, 8, 10], # number of folds
+        [activations.Sigmoid(), activations.ReLu(), activations.Tanh()] # activation functions
+)
+
 now = datetime.datetime.now()
 for i, g in enumerate(grid):
     folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
@@ -51,7 +53,6 @@ for i, g in enumerate(grid):
             loss=loss,
             regularizer=regularizers.L2(lmbda),
             optimizer=optimizers.SGD(lr, epochs, mb, alpha))
-            #optimizer=optimizers.Adam(alpha=lr, epochs=epochs))
     model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
     model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
@@ -102,5 +103,8 @@ for i, g in enumerate(grid):
                         + "\nMean Euclidean Error inner test set: {0}".format(MEE_inner_test_set)
     model.save(folder, desc, learning_img)
     model.predict(test_set[:, :-2], save_csv=True)
+
+# model assessment
+
 #model = nn.NeuralNetwork().load('models/cup/20200124_125548_1/20200124_192433_1.pkl')
 #model.predict(test_set, save_csv=True)
