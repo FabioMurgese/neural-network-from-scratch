@@ -4,7 +4,7 @@ import numpy as np
 
 class Optimizer(object):
     
-    def train(self, training_set, validation_set, net):
+    def train(self, training_set, validation_set, net, verbose=False):
         """Train the network.
         
         Parameters
@@ -85,7 +85,7 @@ class SGD(Optimizer):
             a = layer.A
         return net.err.error(y, net.layers[-1].A)
     
-    def train(self, training_set, validation_set, net, compute_accuracy=False):
+    def train(self, training_set, validation_set, net, compute_accuracy=False, verbose=False):
         """Executes Stochastic Gradient Descent learning algorithm (with momentum).
         """
         tr_errors = []
@@ -103,8 +103,9 @@ class SGD(Optimizer):
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
             vl_errors.append(vl_error)
-            print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
-                    k+1, self.epochs, tr_error, vl_error))
+            if verbose:
+                print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
+                        k+1, self.epochs, tr_error, vl_error))
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
@@ -123,7 +124,7 @@ class Adam(Optimizer):
         self.beta_2 = 0.999
         self.epsilon = 1e-8
     
-    def train(self, training_set, validation_set, net, compute_accuracy=False):
+    def train(self, training_set, validation_set, net, compute_accuracy=False, verbose=False):
         """Executes Adam learning algorithm.
         """
         tr_errors = []
@@ -164,8 +165,9 @@ class Adam(Optimizer):
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
             vl_errors.append(vl_error)
-            print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
-                    t, self.epochs, tr_error, vl_error))
+            if verbose:
+                print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
+                        t, self.epochs, tr_error, vl_error))
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))

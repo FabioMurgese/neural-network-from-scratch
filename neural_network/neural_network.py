@@ -145,7 +145,7 @@ class NeuralNetwork:
         with open(filename, 'rb') as file:
             return pickle.load(file)
     
-    def fit(self, training_set, validation_set, compute_accuracy=False):
+    def fit(self, training_set, validation_set, compute_accuracy=False, verbose=False):
         """Computes the default optimization learning algorithm.
         
         Parameters
@@ -159,7 +159,7 @@ class NeuralNetwork:
         -------
         the training errors, the validation errors
         """
-        tr_errors, vl_errors, tr_accuracy, vl_accuracy, self = self.optimizer.train(training_set, validation_set, self, compute_accuracy)
+        tr_errors, vl_errors, tr_accuracy, vl_accuracy, self = self.optimizer.train(training_set, validation_set, self, compute_accuracy, verbose)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
     
     def feedforward(self, x):

@@ -42,10 +42,10 @@ for i, g in enumerate(grid):
     alpha = g["alpha"]
     n_hidden = g["nhidden"]
     mb = g["mb"]
-    loss = g["loss"]
+    loss = losses.MeanSquaredError()
     n_folds = g["nfolds"]
     activation = g["activation"]
-    n_outputs = g["n_outputs"]
+    n_outputs = 2
     lmbda = g["lambda"]
     # building the model
     model = nn.NeuralNetwork(
@@ -93,7 +93,7 @@ for i, g in enumerate(grid):
     plt1.set_xlabel("Epochs")
     plt1.set_ylabel("Error")
     plt1.legend(['train', 'validation'], loc='upper right')
-    learning_img.show()
+    #learning_img.show()
     plt.close(learning_img)
 
     g["activation"] = type(activation).__name__
