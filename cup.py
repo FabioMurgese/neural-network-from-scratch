@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+from tqdm import tqdm
 import pandas as pd
 import datetime
 
@@ -23,86 +26,88 @@ blind_test_set = dataset_test.iloc[:, :].values
 grid = nn.get_grid_search(
         [0.1, 0.01, 0.001, 0.2, 0.02, 0.002, 0.3, 0.03, 0.003, 0.4, 0.04, 0.004], # learning rates
         [600, 1200, 2500], # epochs
-        [0.01, 0.1, 0.2, 0.3, 0.4], # alphas
-        [0.001, 0.0001, 0.00001, 0.000001, 0.0000001], # lambdas
-        [7, 20, 50, 100], # hidden units
-        [50, 120, 250, 300, 350], # mini-batches
-        [5, 8, 10], # number of folds
+        [0.01, 0.1, 0.2, 0.3], # alphas
+        [0.00001, 0.000001, 0.0000001], # lambdas
+        [7, 20, 50], # hidden units
+        [300], # mini-batches
+        [5], # number of folds
         [activations.Sigmoid(), activations.ReLu(), activations.Tanh()] # activation functions
 )
 
 now = datetime.datetime.now()
-for i, g in enumerate(grid):
-    folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
-    grid_tr_errors = []
-    grid_vl_errors = []
-    # hyperparameters
-    lr = g["lr"]
-    epochs = g["epochs"]
-    alpha = g["alpha"]
-    n_hidden = g["nhidden"]
-    mb = g["mb"]
-    loss = losses.MeanSquaredError()
-    n_folds = g["nfolds"]
-    activation = g["activation"]
-    n_outputs = 2
-    lmbda = g["lambda"]
-    # building the model
-    model = nn.NeuralNetwork(
-            error=errors.MeanEuclideanError(),
-            loss=loss,
-            regularizer=regularizers.L2(lmbda),
-            optimizer=optimizers.SGD(lr, epochs, mb, alpha))
-    model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden, 2), activation=activations.Linear(), is_output=True))
-
-    start_time = datetime.datetime.now()
-    # k-fold cross validation
-    fold = 1
-    for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
-        print('Fold #{:d}'.format(fold))
-        tr_errors, vl_errors, _, _ = model.fit(TR, VL)
-        grid_tr_errors.append(tr_errors)
-        grid_vl_errors.append(vl_errors)
-        fold += 1
-    end_time = datetime.datetime.now()
-    time = end_time - start_time
-    print("Trained in {0} seconds".format(str(time.total_seconds())))
-
-    _, MEE_inner_test_set = model.validate(test_set)
-    print("Mean Euclidean Error inner test_set: {0}".format(MEE_inner_test_set))
-
-    # mean the i-th elements of the list of k-folds
-    tr_errors = [0] * len(grid_tr_errors[0])
-    vl_errors = [0] * len(grid_vl_errors[0])
-    for lst in grid_tr_errors:
-        for i, e in enumerate(lst):
-            tr_errors[i] += e
-    for lst in grid_vl_errors:
-        for i, e in enumerate(lst):
-            vl_errors[i] += e
-    tr_errors = [x/n_folds for x in tr_errors]
-    vl_errors = [x/n_folds for x in vl_errors]
-
-    # plot learning curve
-    learning_img, plt1 = plt.subplots()
-    plt1.plot(tr_errors)
-    plt1.plot(vl_errors)
-    plt1.set_title("Learning curve")
-    plt1.set_xlabel("Epochs")
-    plt1.set_ylabel("Error")
-    plt1.legend(['train', 'validation'], loc='upper right')
-    #learning_img.show()
-    plt.close(learning_img)
-
-    g["activation"] = type(activation).__name__
-    g["loss"] = type(loss).__name__
-    desc = str(g) + "\nMean Euclidean Error training set: {0}".format(tr_errors[-1]) \
-                        + "\nMean Euclidean Error validation set: {0}".format(vl_errors[-1]) \
-                        + "\nMean Euclidean Error inner test set: {0}".format(MEE_inner_test_set)
-    model.save(folder, desc, learning_img)
-    model.predict(test_set[:, :-2], save_csv=True)
+with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
+    for i, g in enumerate(grid):
+        folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
+        grid_tr_errors = []
+        grid_vl_errors = []
+        # hyperparameters
+        lr = g["lr"]
+        epochs = g["epochs"]
+        alpha = g["alpha"]
+        n_hidden = g["nhidden"]
+        mb = g["mb"]
+        loss = losses.MeanSquaredError()
+        n_folds = g["nfolds"]
+        activation = g["activation"]
+        n_outputs = 2
+        lmbda = g["lambda"]
+        # building the model
+        model = nn.NeuralNetwork(
+                error=errors.MeanEuclideanError(),
+                loss=loss,
+                regularizer=regularizers.L2(lmbda),
+                optimizer=optimizers.SGD(lr, epochs, mb, alpha))
+        model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+        model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
+    
+        start_time = datetime.datetime.now()
+        # k-fold cross validation
+        fold = 1
+        for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
+            #print('Fold #{:d}'.format(fold))
+            tr_errors, vl_errors, _, _ = model.fit(TR, VL)
+            grid_tr_errors.append(tr_errors)
+            grid_vl_errors.append(vl_errors)
+            fold += 1
+        end_time = datetime.datetime.now()
+        time = end_time - start_time
+        #print("Trained in {0} seconds".format(str(time.total_seconds())))
+    
+        _, MEE_inner_test_set = model.validate(test_set)
+        #print("Mean Euclidean Error inner test_set: {0}".format(MEE_inner_test_set))
+    
+        # mean the i-th elements of the list of k-folds
+        tr_errors = [0] * len(grid_tr_errors[0])
+        vl_errors = [0] * len(grid_vl_errors[0])
+        for lst in grid_tr_errors:
+            for i, e in enumerate(lst):
+                tr_errors[i] += e
+        for lst in grid_vl_errors:
+            for i, e in enumerate(lst):
+                vl_errors[i] += e
+        tr_errors = [x/n_folds for x in tr_errors]
+        vl_errors = [x/n_folds for x in vl_errors]
+    
+        # plot learning curve
+        learning_img, plt1 = plt.subplots()
+        plt1.plot(tr_errors)
+        plt1.plot(vl_errors)
+        plt1.set_title("Learning curve")
+        plt1.set_xlabel("Epochs")
+        plt1.set_ylabel("Error")
+        plt1.legend(['train', 'validation'], loc='upper right')
+        #learning_img.show()
+        plt.close()
+    
+        g["activation"] = type(activation).__name__
+        g["loss"] = type(loss).__name__
+        desc = str(g) + "\nMean Euclidean Error training set: {0}".format(tr_errors[-1]) \
+                            + "\nMean Euclidean Error validation set: {0}".format(vl_errors[-1]) \
+                            + "\nMean Euclidean Error inner test set: {0}".format(MEE_inner_test_set)
+        model.save(folder, desc, learning_img)
+        model.predict(test_set[:, :-2], save_csv=True)
+        progress_bar.update(1)
 
 # model assessment
 
