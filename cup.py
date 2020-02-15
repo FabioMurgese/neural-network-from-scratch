@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 import datetime
 
 import neural_network.activation_functions as activations
@@ -24,14 +25,14 @@ blind_test_set = dataset_test.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.01, 0.001, 0.2, 0.02, 0.002, 0.3, 0.03, 0.003, 0.4, 0.04, 0.004],  # learning rates
-        [1000, 1500, 2000],  # epochs
+        [0.3, 0.03, 0.003, 0.4, 0.04, 0.004],  # learning rates
+        [500, 1000, 2000],  # epochs
         [0.01, 0.1, 0.2, 0.3],  # alphas
-        [0.00001, 0.000001, 0.0000001],  # lambdas
+        [0.00001, 0.000001, 0.0000001, 0.0000001],  # lambdas
         [7, 20, 50],  # hidden units
-        [300],  # mini-batches
+        [100, 300],  # mini-batches
         [5],  # number of folds
-        [activations.Sigmoid(), activations.ReLu(), activations.Tanh()],  # activation functions
+        [activations.Sigmoid()],  # activation functions
 )
 
 now = datetime.datetime.now()
@@ -73,6 +74,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         end_time = datetime.datetime.now()
         time = end_time - start_time    
         _, MEE_inner_test_set = model.validate(test_set)
+        variance = np.var(grid_tr_errors)
     
         # mean the i-th elements of the list of k-folds
         tr_errors = [0] * len(grid_tr_errors[0])
@@ -103,6 +105,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 + "\nMEE TR: {0}".format(tr_errors[-1]) \
                 + "\nMEE VL: {0}".format(vl_errors[-1]) \
                 + "\nMEE TS (inner): {0}".format(MEE_inner_test_set) \
+                + "\nVariance TR: {0}".format(variance) \
                 + "\nTrained in {0} seconds".format(str(time.total_seconds()))
         model.save(folder, desc, learning_img)
         model.predict(test_set[:, :-2], save_csv=True)
