@@ -24,14 +24,14 @@ blind_test_set = dataset_test.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.01, 0.001, 0.2, 0.02, 0.002, 0.3, 0.03, 0.003, 0.4, 0.04, 0.004], # learning rates
-        [1000, 1500, 2000], # epochs
-        [0.01, 0.1, 0.2, 0.3], # alphas
-        [0.00001, 0.000001, 0.0000001], # lambdas
-        [7, 20, 50], # hidden units
-        [300], # mini-batches
-        [5], # number of folds
-        [activations.Sigmoid(), activations.ReLu(), activations.Tanh()], # activation functions
+        [0.01, 0.001, 0.2, 0.02, 0.002, 0.3, 0.03, 0.003, 0.4, 0.04, 0.004],  # learning rates
+        [1000, 1500, 2000],  # epochs
+        [0.01, 0.1, 0.2, 0.3],  # alphas
+        [0.00001, 0.000001, 0.0000001],  # lambdas
+        [7, 20, 50],  # hidden units
+        [300],  # mini-batches
+        [5],  # number of folds
+        [activations.Sigmoid(), activations.ReLu(), activations.Tanh()],  # activation functions
 )
 
 now = datetime.datetime.now()

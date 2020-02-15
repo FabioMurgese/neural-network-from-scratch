@@ -37,6 +37,8 @@ class MeanEuclideanError(ErrorFunction):
         sum = .0
         n = target.shape[0]
         for i in range(n):
+            sum_squares = .0
             for j in range(target.shape[1]):
-                sum += np.linalg.norm(output[i,j] - target[i,j])
+                sum_squares += np.square(output[i, j] - target[i, j])
+            sum += np.sqrt(sum_squares)
         return sum / n
