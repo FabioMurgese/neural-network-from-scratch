@@ -28,13 +28,13 @@ class MeanSquaredError(LossFunction):
     """
     
     def delta(self, layer, right_layer, target):
-        if(layer.is_output_layer):
+        if layer.is_output_layer:
             n = target.shape[0]
-            output = layer.A
+            output = layer.output
             error = (2 / n) * (output - target)
-            return np.atleast_2d(error * layer.dZ)
+            return np.atleast_2d(error * layer.dz)
         else:
-            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)
+            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)
     
     
 class SumSquaresError(LossFunction):
@@ -42,12 +42,12 @@ class SumSquaresError(LossFunction):
     """
     
     def delta(self, layer, right_layer, target):
-        if(layer.is_output_layer):
-            output = layer.A
+        if layer.is_output_layer:
+            output = layer.output
             error = output - target
-            return np.atleast_2d(error * layer.dZ)
+            return np.atleast_2d(error * layer.dz)
         else:
-            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)
+            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)
         
 
 class BinaryCrossEntropy(LossFunction):
@@ -55,10 +55,10 @@ class BinaryCrossEntropy(LossFunction):
     """
     
     def delta(self, layer, right_layer, target):
-        if(layer.is_output_layer):
+        if layer.is_output_layer:
             m = target.shape[0]
-            output = layer.A
+            output = layer.output
             error = -((1 / m) * np.sum(np.maximum(output, 0) - output * target + np.log(1 + np.exp(-np.abs(output)))))
-            return np.atleast_2d(error * layer.dZ)
+            return np.atleast_2d(error * layer.dz)
         else:
-            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dZ)
+            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)

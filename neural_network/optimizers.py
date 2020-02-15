@@ -82,8 +82,8 @@ class SGD(Optimizer):
             # perform regularization
             if(net.regularizer is not None):
                 layer.weight = net.regularizer.regularize(layer.weight)
-            a = layer.A
-        return net.err.error(y, net.layers[-1].A)
+            a = layer.output
+        return net.err.error(y, net.layers[-1].output)
     
     def train(self, training_set, validation_set, net, compute_accuracy=False, verbose=False):
         """Executes Stochastic Gradient Descent learning algorithm (with momentum).
@@ -160,8 +160,8 @@ class Adam(Optimizer):
                 # update parameters
                 dw = self.alpha * m_hat / (np.sqrt(v_hat) + self.epsilon)
                 layer.weight -= dw
-                x = layer.A
-            tr_error = net.err.error(y, net.layers[-1].A)
+                x = layer.output
+            tr_error = net.err.error(y, net.layers[-1].output)
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
             vl_errors.append(vl_error)

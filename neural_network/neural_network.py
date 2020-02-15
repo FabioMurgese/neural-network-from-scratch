@@ -28,7 +28,7 @@ class Layer:
         self.weight = self.__normal_weights((dim[0]+1, dim[1] if is_output else dim[1]+1))
         self.activation = activation
         self.delta = None
-        self.A = None
+        self.output = None
         self.dw_old = None
         self.is_output_layer = is_output
 
@@ -51,10 +51,10 @@ class Layer:
         -------
         the output of the layer
         """
-        z = np.dot(x, self.weight)  # the net of the layer
-        self.A = self.activation.function(z)  # sigma(net)
-        self.dZ = np.atleast_2d(self.activation.derivative(z))  # partial derivative
-        return self.A
+        net = np.dot(x, self.weight)  # the net of the layer
+        self.output = self.activation.function(net)  # sigma(net)
+        self.dz = np.atleast_2d(self.activation.derivative(net))  # partial derivative
+        return self.output
     
     def backward(self, y, right_layer, loss):
         """Perform the default loss function derivative.
