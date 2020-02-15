@@ -34,5 +34,9 @@ class MeanEuclideanError(ErrorFunction):
     def error(self, target, output):
         """Computes Mean Euclidean Error.
         """
+        sum = .0
         n = target.shape[0]
-        return float(np.linalg.norm(np.array(output) - np.array(target)) / n)
+        for i in range(n):
+            for j in range(target.shape[1]):
+                sum += np.linalg.norm(output[i,j] - target[i,j])
+        return sum / n
