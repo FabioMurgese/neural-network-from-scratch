@@ -25,12 +25,12 @@ blind_test_set = dataset_test.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.3, 0.03, 0.003, 0.4, 0.04, 0.004],  # learning rates
-        [500, 1000, 2000],  # epochs
-        [0.01, 0.1, 0.2, 0.3],  # alphas
-        [0.00001, 0.000001, 0.0000001, 0.0000001],  # lambdas
-        [7, 20, 50],  # hidden units
-        [100, 300],  # mini-batches
+        [0.1, 0.15, 0.2, 0.25],  # learning rates
+        [150, 200],  # epochs
+        [0.1, 0.2, 0.02],  # alphas
+        [1e-04, 1e-05, 1e-06, 1e-07, 1e-08],  # lambdas
+        [10, 20, 30],  # hidden units
+        [300],  # mini-batches
         [5],  # number of folds
         [activations.Sigmoid()],  # activation functions
 )
@@ -47,7 +47,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         alpha = g["alpha"]
         n_hidden = g["nhidden"]
         mb = g["mb"]
-        loss = losses.MeanSquaredError()
         n_folds = g["nfolds"]
         activation = g["activation"]
         n_outputs = 2
@@ -55,7 +54,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         # building the model
         model = nn.NeuralNetwork(
                 error=errors.MeanEuclideanError(),
-                loss=loss,
+                loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
                 optimizer=optimizers.SGD(lr, epochs, mb, alpha))
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
@@ -98,9 +97,11 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         plt1.legend(['train', 'validation'], loc='upper right')
         #learning_img.show()
         plt.close()
-    
+        
+        g["optimizer"] = type(model.optimizer).__name__
+        g["regularizer"] = type(model.regularizer).__name__
         g["activation"] = type(activation).__name__
-        g["loss"] = type(loss).__name__
+        g["loss"] = type(model.loss).__name__
         desc = str(g) \
                 + "\nMEE TR: {0}".format(tr_errors[-1]) \
                 + "\nMEE VL: {0}".format(vl_errors[-1]) \

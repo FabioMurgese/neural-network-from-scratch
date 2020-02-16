@@ -90,7 +90,7 @@ class NeuralNetwork:
             the optimizer (default: SGD)
         """
         self.layers = []
-        self.err = error
+        self.error = error
         self.loss = loss
         self.regularizer = regularizer
         self.optimizer = optimizer
@@ -159,7 +159,7 @@ class NeuralNetwork:
         -------
         the training errors, the validation errors
         """
-        tr_errors, vl_errors, tr_accuracy, vl_accuracy, self = self.optimizer.train(training_set, validation_set, self, compute_accuracy, verbose)
+        tr_errors, vl_errors, tr_accuracy, vl_accuracy = self.optimizer.train(training_set, validation_set, self, compute_accuracy, verbose)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
     
     def feedforward(self, x):
@@ -205,7 +205,7 @@ class NeuralNetwork:
         a = np.concatenate((ones.T, X), axis=1)
         for l in self.layers:
             a = l.forward(a)
-        return a, self.err.error(y, a)
+        return a, self.error.error(y, a)
     
     def predict(self, x, save_csv=False):
         """Computes the predicted output of the network.

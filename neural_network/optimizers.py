@@ -66,9 +66,8 @@ class SGD(Optimizer):
         # update weights
         ones = np.atleast_2d(np.ones(X.shape[0]))
         X = np.concatenate((ones.T, X), axis=1)
-        a = X
         for layer in net.layers:
-            x = np.atleast_2d(a)
+            x = np.atleast_2d(X)
             d = np.atleast_2d(layer.delta)
             dw = self.lr * x.T.dot(d)
             layer.dw_old = dw
@@ -81,9 +80,9 @@ class SGD(Optimizer):
                 layer.weight -= dw
             # perform regularization
             if(net.regularizer is not None):
-                layer.weight = net.regularizer.regularize(layer.weight)
-            a = layer.output
-        return net.err.error(y, net.layers[-1].output)
+                net.regularizer.regularize(layer.weight)
+            X = layer.output
+        return net.error.error(y, net.layers[-1].output)
     
     def train(self, training_set, validation_set, net, compute_accuracy=False, verbose=False):
         """Executes Stochastic Gradient Descent learning algorithm (with momentum).
@@ -109,7 +108,7 @@ class SGD(Optimizer):
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
-        return tr_errors, vl_errors, tr_accuracy, vl_accuracy, net
+        return tr_errors, vl_errors, tr_accuracy, vl_accuracy
         
 
 class Adam(Optimizer):
@@ -161,7 +160,7 @@ class Adam(Optimizer):
                 dw = self.alpha * m_hat / (np.sqrt(v_hat) + self.epsilon)
                 layer.weight -= dw
                 x = layer.output
-            tr_error = net.err.error(y, net.layers[-1].output)
+            tr_error = net.error.error(y, net.layers[-1].output)
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
             vl_errors.append(vl_error)
@@ -171,4 +170,4 @@ class Adam(Optimizer):
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
-        return tr_errors, vl_errors, tr_accuracy, vl_accuracy, net
+        return tr_errors, vl_errors, tr_accuracy, vl_accuracy
