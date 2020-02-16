@@ -18,9 +18,11 @@ import neural_network.neural_network as nn
 # load data
 dataset = pd.read_csv('datasets/cup/ML-CUP19-TR.csv', header=None)
 dataset_test = pd.read_csv('datasets/cup/ML-CUP19-TS.csv', header=None)
+
 training_set = dataset.iloc[:1300, :].values
 test_set = dataset.iloc[1300:, :].values
 blind_test_set = dataset_test.iloc[:, :].values
+dataset = dataset.iloc[:, :].values
 
 # model selection
 # grid search
@@ -41,6 +43,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
         grid_tr_errors = []
         grid_vl_errors = []
+        n_outputs = 2
         # hyperparameters
         lr = g["lr"]
         epochs = g["epochs"]
@@ -49,7 +52,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         mb = g["mb"]
         n_folds = g["nfolds"]
         activation = g["activation"]
-        n_outputs = 2
         lmbda = g["lambda"]
         # building the model
         model = nn.NeuralNetwork(
@@ -63,15 +65,13 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
     
         start_time = datetime.datetime.now()
         # k-fold cross validation
-        fold = 1
         for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
-            #print('Fold #{:d}'.format(fold))
             tr_errors, vl_errors, _, _ = model.fit(TR, VL)
             grid_tr_errors.append(tr_errors)
             grid_vl_errors.append(vl_errors)
-            fold += 1
         end_time = datetime.datetime.now()
         time = end_time - start_time    
+        
         _, MEE_inner_test_set = model.validate(test_set)
         variance = np.var(grid_tr_errors)
     
@@ -95,7 +95,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         plt1.set_xlabel("Epochs")
         plt1.set_ylabel("Error")
         plt1.legend(['train', 'validation'], loc='upper right')
-        #learning_img.show()
         plt.close()
         
         g["optimizer"] = type(model.optimizer).__name__
@@ -109,10 +108,10 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 + "\nVariance TR: {0}".format(variance) \
                 + "\nTrained in {0} seconds".format(str(time.total_seconds()))
         model.save(folder, desc, learning_img)
-        model.predict(test_set[:, :-2], save_csv=True)
         progress_bar.update(1)
 
 # model assessment
+#model.predict(test_set[:, :-2], save_csv=True)
 
 # extract and order the models w.r.t MEE VL
 import os
