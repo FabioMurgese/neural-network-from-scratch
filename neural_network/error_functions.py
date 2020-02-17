@@ -34,11 +34,7 @@ class MeanEuclideanError(ErrorFunction):
     def error(self, target, output):
         """Computes Mean Euclidean Error.
         """
-        sum = .0
-        n = target.shape[0]
-        for i in range(n):
-            sum_squares = .0
-            for j in range(target.shape[1]):
-                sum_squares += np.square(output[i, j] - target[i, j])
-            sum += np.sqrt(sum_squares)
-        return sum / n
+        error = .0
+        for o, t in zip(output, target):
+            error += np.linalg.norm(o - t)
+        return error / len(output)
