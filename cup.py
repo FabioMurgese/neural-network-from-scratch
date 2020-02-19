@@ -27,14 +27,14 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.1, 0.15, 0.2, 0.25],  # learning rates
-        [150, 200],  # epochs
-        [0.1, 0.2, 0.02],  # alphas
-        [1e-04, 1e-05, 1e-06, 1e-07, 1e-08],  # lambdas
-        [10, 20, 30],  # hidden units
+        [0.04, 0.055, 0.07],  # learning rates
+        [400],  # epochs
+        [0.2, 0.3, 0.4],  # alphas
+        [1e-04, 1e-05],  # lambdas
+        [20, 30],  # hidden units
         [300],  # mini-batches
         [5],  # number of folds
-        [activations.Sigmoid()],  # activation functions
+        [activations.Sigmoid()]  # activation functions
 )
 
 now = datetime.datetime.now()
