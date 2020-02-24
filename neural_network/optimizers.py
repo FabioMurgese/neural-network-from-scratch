@@ -102,13 +102,13 @@ class SGD(Optimizer):
             tr_errors.append(tr_error)
             _, vl_error = net.validate(validation_set)
             vl_errors.append(vl_error)
-            np.random.shuffle(training_set)
             if verbose:
                 print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
                         k+1, self.epochs, tr_error, vl_error))
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
+            np.random.shuffle(training_set)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
         
 
