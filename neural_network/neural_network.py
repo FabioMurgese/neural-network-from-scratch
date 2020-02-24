@@ -238,7 +238,7 @@ class NeuralNetwork:
         return accuracy
 
 
-def k_fold_cross_validation(X, K, shuffle=True):
+def k_fold_cross_validation(X, K, shuffle=False):
     """Perform k-fold cross validation splitting dataset
     in trainng set and validation set.
     """
