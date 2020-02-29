@@ -72,12 +72,13 @@ class SGD(Optimizer):
             dw = self.lr * x.T.dot(d)
             layer.dw_old = dw
             # add momentum
+            mooving_average = (1 - self.alpha) * dw
             if(layer.dw_old is not None):
                 momentum = self.alpha * layer.dw_old
                 dw += momentum
-                layer.weight -= dw
+                layer.weight -= dw + mooving_average
             else:
-                layer.weight -= dw
+                layer.weight -= dw + mooving_average
             # perform regularization
             if(net.regularizer is not None):
                 net.regularizer.regularize(layer.weight)
