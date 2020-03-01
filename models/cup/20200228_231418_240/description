@@ -1,6 +1,0 @@
-{'lr': 0.02, 'epochs': 350, 'alpha': 0.5, 'lambda': 1e-07, 'nhidden': 25, 'mb': 300, 'nfolds': 5, 'activation': 'Sigmoid', 'optimizer': 'SGD', 'regularizer': 'L2', 'loss': 'MeanSquaredError'}
-MEE TR: 0.9460940405637714
-MEE VL: 1.040260595749326
-MEE TS (inner): 1.059683537185859
-Variance TR: 0.13072238878591766
-Trained in 20.088891 seconds

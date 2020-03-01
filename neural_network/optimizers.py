@@ -70,15 +70,10 @@ class SGD(Optimizer):
             x = np.atleast_2d(X)
             d = np.atleast_2d(layer.delta)
             dw = self.lr * x.T.dot(d)
-            layer.dw_old = dw
             # add momentum
-            mooving_average = (1 - self.alpha) * dw
-            if(layer.dw_old is not None):
-                momentum = self.alpha * layer.dw_old
-                dw += momentum
-                layer.weight -= dw + mooving_average
-            else:
-                layer.weight -= dw + mooving_average
+            momentum = self.alpha * layer.dw_old
+            layer.weight -= dw + momentum
+            layer.dw_old = dw
             # perform regularization
             if(net.regularizer is not None):
                 net.regularizer.regularize(layer.weight)

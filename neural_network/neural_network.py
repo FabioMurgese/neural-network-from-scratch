@@ -29,7 +29,7 @@ class Layer:
         self.activation = activation
         self.delta = None
         self.output = None
-        self.dw_old = None
+        self.dw_old = np.zeros_like(self.weight)
         self.is_output_layer = is_output
 
     def __normal_weights(self, dim):
