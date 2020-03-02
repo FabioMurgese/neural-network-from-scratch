@@ -27,13 +27,13 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01], # learning rates
+        [0.09], # learning rates
         [500], # epochs
-        [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3], # momentum alphas
-        [0.9, 0.8], # momentum betas (moving average)
-        [1e-08, 1e-07, 1e-06, 1e-05, 1e-04], # lambdas
+        [0.9], # momentum alphas
+        [0.9], # momentum betas (moving average)
+        [1e-07], # lambdas
         [20], # hidden units
-        [50, 100, 200, 300], # mini-batches
+        [25], # mini-batches
         [5], # number of folds
         [activations.Sigmoid()] # activation functions
 )
