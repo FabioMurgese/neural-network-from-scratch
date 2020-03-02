@@ -115,9 +115,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         model.save(folder, desc, learning_img)
         progress_bar.update(1)
 
-# model assessment
-#model.predict(test_set[:, :-2], save_csv=True)
-
 # extract and order the models w.r.t MEE VL
 import os
 runs_dir = 'runs/'
@@ -130,3 +127,30 @@ for folder in os.listdir(runs_dir):
             models_mee.append({'name': folder, 'mee': mee})
 models_mee = sorted(models_mee, key=lambda i: i["mee"])
 print(models_mee)
+
+# model assessment
+n_outputs = 2
+n_hidden = 20
+activation = activations.Sigmoid()
+model = nn.NeuralNetwork(
+                error=errors.MeanEuclideanError(),
+                loss=losses.MeanSquaredError(),
+                regularizer=regularizers.L2(lmbda=1e-07),
+                optimizer=optimizers.SGD(lr=0.09, epochs=500, mb=25, alpha=0.9, beta=0.9))
+model.add(nn.Layer(dim=(dataset.shape[1] - n_outputs, n_hidden), activation=activation))
+model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
+tr_errors, _, _, _ = model.fit(dataset, dataset, verbose=True)
+
+# plot learning curve
+learning_img, plt1 = plt.subplots()
+plt1.plot(tr_errors)
+plt1.set_title("Model assessment")
+plt1.set_xlabel("Epochs")
+plt1.set_ylabel("Error")
+plt1.legend(['dataset'], loc='upper right')
+learning_img.show()
+
+_, ts_error = model.validate(test_set)
+print('Test error:', ts_error)
