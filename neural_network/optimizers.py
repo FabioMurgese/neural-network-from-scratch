@@ -25,7 +25,7 @@ class Optimizer(object):
 
 class SGD(Optimizer):
     
-    def __init__(self, lr=0.1, epochs=100, mb=20, alpha=0.2):
+    def __init__(self, lr=0.1, epochs=100, mb=20, alpha=0.2, beta=0.9):
         """
         Parameters
         ----------
@@ -37,11 +37,14 @@ class SGD(Optimizer):
             the mini-batch size
         alpha : float
             the momentum parameter
+        beta : float
+            the moving average parameter (0 >= beta >= 1)
         """
         self.lr = lr
         self.epochs = epochs
         self.mb = mb
         self.alpha = alpha
+        self.beta = beta
     
     def __backpropagation(self, X, y, net):
         """Perform backpropagation algorithm.
@@ -69,14 +72,15 @@ class SGD(Optimizer):
         for layer in net.layers:
             x = np.atleast_2d(X)
             d = np.atleast_2d(layer.delta)
-            dw = self.lr * x.T.dot(d)
             # add momentum
             momentum = self.alpha * layer.dw_old
-            layer.weight -= dw + momentum
-            layer.dw_old = dw
+            dw = self.lr * x.T.dot(d) + momentum
+            layer.weight -= dw
             # perform regularization
             if(net.regularizer is not None):
                 net.regularizer.regularize(layer.weight)
+            # apply moving average
+            layer.dw_old = self.beta * layer.dw_old + (1 - self.beta) * dw
             X = layer.output
         return net.error.error(y, net.layers[-1].output)
     
@@ -87,7 +91,14 @@ class SGD(Optimizer):
         vl_errors = []
         tr_accuracy = []
         vl_accuracy = []
+        eta_0 = self.lr
         for k in range(self.epochs):
+            # learning rate decay
+            alpha = self.epochs / 200
+            eta_t = eta_0 / 100
+            self.lr = (1 - alpha) * eta_0 + alpha * eta_t
+            if (self.epochs > 200):
+                self.lr = eta_t
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
                 x = np.atleast_2d(training_set[b:b+self.mb, :-net.n_outputs()])
@@ -104,6 +115,9 @@ class SGD(Optimizer):
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
+            # early stopping
+            if vl_error <= 1.0:
+                return tr_errors, vl_errors, tr_accuracy, vl_accuracy
             np.random.shuffle(training_set)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
         

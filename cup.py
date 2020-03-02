@@ -27,14 +27,15 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.01, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008],  # learning rates
-        [400, 800],  # epochs
-        [0.1, 0.2, 0.3, 0.4, 0.5, 0.01, 0.02, 0.03, 0.04],  # alphas
-        [1e-05, 1e-06, 1e-07, 1e-08],  # lambdas
-        [20],  # hidden units
-        [300],  # mini-batches
-        [5],  # number of folds
-        [activations.Sigmoid()]  # activation functions
+        [0.05, 0.04, 0.03, 0.02, 0.01], # learning rates
+        [500], # epochs
+        [0.9], # momentum alphas
+        [0.8], # momentum betas (moving average)
+        [1e-08, 1e-07, 1e-06, 1e-05], # lambdas
+        [20], # hidden units
+        [100], # mini-batches
+        [5], # number of folds
+        [activations.Sigmoid()] # activation functions
 )
 
 now = datetime.datetime.now()
@@ -44,28 +45,32 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         grid_tr_errors = []
         grid_vl_errors = []
         n_outputs = 2
+        
         # hyperparameters
         lr = g["lr"]
         epochs = g["epochs"]
         alpha = g["alpha"]
+        beta = g["beta"]
         n_hidden = g["nhidden"]
         mb = g["mb"]
         n_folds = g["nfolds"]
         activation = g["activation"]
         lmbda = g["lambda"]
+        
         # building the model
         model = nn.NeuralNetwork(
                 error=errors.MeanEuclideanError(),
                 loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
-                optimizer=optimizers.SGD(lr, epochs, mb, alpha))
+                optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta))
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
-    
+        
         start_time = datetime.datetime.now()
         # k-fold cross validation
-        for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=False):
+        for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
             tr_errors, vl_errors, _, _ = model.fit(TR, VL)
             grid_tr_errors.append(tr_errors)
             grid_vl_errors.append(vl_errors)
@@ -76,8 +81,8 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         variance = np.var(grid_tr_errors)
     
         # mean the i-th elements of the list of k-folds
-        tr_errors = [0] * len(grid_tr_errors[0])
-        vl_errors = [0] * len(grid_vl_errors[0])
+        tr_errors = [0] * epochs
+        vl_errors = [0] * epochs
         for lst in grid_tr_errors:
             for i, e in enumerate(lst):
                 tr_errors[i] += e

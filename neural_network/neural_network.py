@@ -259,6 +259,7 @@ def get_grid_search(*args):
         [[learning rates      ], 
          [epochs              ],
          [alphas              ],
+         [betas               ],
          [lambdas             ],
          [hidden units        ],
          [minibatches         ],
@@ -275,9 +276,10 @@ def get_grid_search(*args):
         grid.append({'lr': e[0],
                      'epochs': e[1],
                      'alpha': e[2],
-                     'lambda': e[3],
-                     'nhidden': e[4],
-                     'mb': e[5],
-                     'nfolds': e[6],
-                     'activation': e[7]})
+                     'beta': e[3],
+                     'lambda': e[4],
+                     'nhidden': e[5],
+                     'mb': e[6],
+                     'nfolds': e[7],
+                     'activation': e[8]})
     return grid
