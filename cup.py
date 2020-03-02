@@ -65,6 +65,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta))
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
+        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
         
         start_time = datetime.datetime.now()
@@ -75,9 +76,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
             grid_vl_errors.append(vl_errors)
         end_time = datetime.datetime.now()
         time = end_time - start_time
-        
-        _, MEE_inner_test_set = model.validate(test_set)
-        variance = np.var(grid_tr_errors)
         
         # mean the i-th elements of the list of k-folds
         min_len_tr = min(map(len, grid_tr_errors))
@@ -92,6 +90,9 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 vl_errors[i] += lst[i]
         tr_errors = [x/n_folds for x in tr_errors]
         vl_errors = [x/n_folds for x in vl_errors]
+        
+        _, MEE_inner_test_set = model.validate(test_set)
+        variance = np.var([lst[:min_len_tr] for lst in grid_tr_errors])
     
         # plot learning curve
         learning_img, plt1 = plt.subplots()
