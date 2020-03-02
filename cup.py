@@ -27,13 +27,13 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.05, 0.04, 0.03, 0.02, 0.01], # learning rates
+        [0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01], # learning rates
         [500], # epochs
-        [0.9], # momentum alphas
-        [0.8], # momentum betas (moving average)
-        [1e-08, 1e-07, 1e-06, 1e-05], # lambdas
+        [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3], # momentum alphas
+        [0.9, 0.8], # momentum betas (moving average)
+        [1e-08, 1e-07, 1e-06, 1e-05, 1e-04], # lambdas
         [20], # hidden units
-        [100], # mini-batches
+        [50, 100, 200, 300], # mini-batches
         [5], # number of folds
         [activations.Sigmoid()] # activation functions
 )
@@ -78,21 +78,19 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         time = end_time - start_time
         
         # mean the i-th elements of the list of k-folds
-        min_len_tr = min(map(len, grid_tr_errors))
-        min_len_vl = min(map(len, grid_vl_errors))
-        tr_errors = [0] * min_len_tr
-        vl_errors = [0] * min_len_vl
+        tr_errors = [0] * epochs
+        vl_errors = [0] * epochs
         for lst in grid_tr_errors:
-            for i in range(len(tr_errors)):
-                tr_errors[i] += lst[i]
+            for i, e in enumerate(lst):
+                tr_errors[i] += e
         for lst in grid_vl_errors:
-            for i in range(len(vl_errors)):
-                vl_errors[i] += lst[i]
+            for i, e in enumerate(lst):
+                vl_errors[i] += e
         tr_errors = [x/n_folds for x in tr_errors]
         vl_errors = [x/n_folds for x in vl_errors]
         
         _, MEE_inner_test_set = model.validate(test_set)
-        variance = np.var([lst[:min_len_tr] for lst in grid_tr_errors])
+        variance = np.var(grid_tr_errors)
     
         # plot learning curve
         learning_img, plt1 = plt.subplots()

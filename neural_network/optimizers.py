@@ -116,9 +116,6 @@ class SGD(Optimizer):
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
-            # early stopping
-            if vl_error <= 1.0:
-                return tr_errors, vl_errors, tr_accuracy, vl_accuracy
             np.random.shuffle(training_set)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
         
