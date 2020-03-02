@@ -94,10 +94,11 @@ class SGD(Optimizer):
         eta_0 = self.lr
         for k in range(self.epochs):
             # learning rate decay
-            alpha = self.epochs / 200
+            max_epochs = (self.epochs * 2 / 3)
+            alpha = self.epochs / max_epochs
             eta_t = eta_0 / 100
             self.lr = (1 - alpha) * eta_0 + alpha * eta_t
-            if (self.epochs > 200):
+            if (self.epochs > max_epochs):
                 self.lr = eta_t
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
