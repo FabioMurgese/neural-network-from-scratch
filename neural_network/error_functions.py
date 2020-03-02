@@ -34,4 +34,4 @@ class MeanEuclideanError(ErrorFunction):
     def error(self, target, output):
         """Computes Mean Euclidean Error.
         """
-        return np.sum(np.linalg.norm(o - t) for o, t in zip(output, target)) / len(output)
+        return np.mean([np.linalg.norm(o - t) for o, t in zip(output, target)])
