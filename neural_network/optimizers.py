@@ -70,14 +70,10 @@ class SGD(Optimizer):
             x = np.atleast_2d(X)
             d = np.atleast_2d(layer.delta)
             dw = self.lr * x.T.dot(d)
-            layer.dw_old = dw
             # add momentum
-            if(layer.dw_old is not None):
-                momentum = self.alpha * layer.dw_old
-                dw += momentum
-                layer.weight -= dw
-            else:
-                layer.weight -= dw
+            momentum = self.alpha * layer.dw_old
+            layer.weight -= dw + momentum
+            layer.dw_old = dw
             # perform regularization
             if(net.regularizer is not None):
                 net.regularizer.regularize(layer.weight)
@@ -108,6 +104,7 @@ class SGD(Optimizer):
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
+            np.random.shuffle(training_set)
         return tr_errors, vl_errors, tr_accuracy, vl_accuracy
         
 

@@ -27,11 +27,11 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.04, 0.055, 0.07],  # learning rates
-        [400],  # epochs
-        [0.2, 0.3, 0.4],  # alphas
-        [1e-04, 1e-05],  # lambdas
-        [20, 30],  # hidden units
+        [0.01, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008],  # learning rates
+        [400, 800],  # epochs
+        [0.1, 0.2, 0.3, 0.4, 0.5, 0.01, 0.02, 0.03, 0.04],  # alphas
+        [1e-05, 1e-06, 1e-07, 1e-08],  # lambdas
+        [20],  # hidden units
         [300],  # mini-batches
         [5],  # number of folds
         [activations.Sigmoid()]  # activation functions
@@ -65,7 +65,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
     
         start_time = datetime.datetime.now()
         # k-fold cross validation
-        for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=True):
+        for TR, VL in nn.k_fold_cross_validation(X=training_set, K=n_folds, shuffle=False):
             tr_errors, vl_errors, _, _ = model.fit(TR, VL)
             grid_tr_errors.append(tr_errors)
             grid_vl_errors.append(vl_errors)

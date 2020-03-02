@@ -1,6 +1,0 @@
-{'lr': 0.002, 'epochs': 600, 'alpha': 0.12, 'lambda': 0.0001, 'nhidden': 20, 'mb': 300, 'nfolds': 5, 'activation': 'Sigmoid', 'loss': 'MeanSquaredError', 'n_outputs': 2}
-Optimizer = Adam
-Mean Euclidean Error training set: 0.04842679503819429
-Mean Euclidean Error validation set: 0.11205728495006721
-Mean Euclidean Error inner test set: 0.06834736496832484
-Trained in 14.382899 seconds
