@@ -65,7 +65,6 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta))
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
         
         start_time = datetime.datetime.now()
@@ -75,20 +74,22 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
             grid_tr_errors.append(tr_errors)
             grid_vl_errors.append(vl_errors)
         end_time = datetime.datetime.now()
-        time = end_time - start_time    
+        time = end_time - start_time
         
         _, MEE_inner_test_set = model.validate(test_set)
         variance = np.var(grid_tr_errors)
-    
+        
         # mean the i-th elements of the list of k-folds
-        tr_errors = [0] * epochs
-        vl_errors = [0] * epochs
+        min_len_tr = min(map(len, grid_tr_errors))
+        min_len_vl = min(map(len, grid_vl_errors))
+        tr_errors = [0] * min_len_tr
+        vl_errors = [0] * min_len_vl
         for lst in grid_tr_errors:
-            for i, e in enumerate(lst):
-                tr_errors[i] += e
+            for i in range(len(tr_errors)):
+                tr_errors[i] += lst[i]
         for lst in grid_vl_errors:
-            for i, e in enumerate(lst):
-                vl_errors[i] += e
+            for i in range(len(vl_errors)):
+                vl_errors[i] += lst[i]
         tr_errors = [x/n_folds for x in tr_errors]
         vl_errors = [x/n_folds for x in vl_errors]
     
