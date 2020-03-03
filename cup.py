@@ -154,3 +154,7 @@ learning_img.show()
 
 _, ts_error = model.validate(test_set)
 print('Test error:', ts_error)
+#model.save('final_model')
+
+#model = nn.NeuralNetwork().load('/home/anto/Programming/neural-network-from-scratch/models/cup/20200302_205321_101/final_model.pkl')
+#model.predict(blind_test_set, save_csv=True)
