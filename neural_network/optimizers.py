@@ -283,7 +283,7 @@ class Nadam(Optimizer):
             # of gradients along weights
             v[i] = self.beta_2 * v[i] + (1 - self.beta_2) * (g ** 2)
             # compute bias-corrected first moment estimate
-            m_hat = m[i] / (1 - (self.beta_1 ** (t+1)))
+            m_hat = m[i] / (1 - (self.beta_1 ** t))
             # compute bias-corrected second raw moment estimate
             v_hat = v[i] / (1 - (self.beta_2 ** t))
             # update parameters
