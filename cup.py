@@ -27,13 +27,13 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.09], # learning rates
-        [500], # epochs
+        [0.008], # learning rates
+        [100], # epochs
         [0.9], # momentum alphas
         [0.9], # momentum betas (moving average)
         [1e-07], # lambdas
         [20], # hidden units
-        [25], # mini-batches
+        [50], # mini-batches
         [5], # number of folds
         [activations.Sigmoid()] # activation functions
 )
@@ -62,7 +62,9 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 error=errors.MeanEuclideanError(),
                 loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
-                optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta))
+                #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
+                optimizer=optimizers.Adam(lr, epochs, mb)
+                )
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
@@ -128,6 +130,7 @@ for folder in os.listdir(runs_dir):
 models_mee = sorted(models_mee, key=lambda i: i["mee"])
 print(models_mee)
 
+"""
 # model assessment
 n_outputs = 2
 n_hidden = 20
@@ -158,3 +161,4 @@ print('Test error:', ts_error)
 
 #model = nn.NeuralNetwork().load('/home/anto/Programming/neural-network-from-scratch/models/cup/20200302_205321_101/final_model.pkl')
 #model.predict(blind_test_set, save_csv=True)
+"""
