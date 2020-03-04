@@ -27,9 +27,9 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.008], # learning rates
-        [100], # epochs
-        [0.9], # momentum alphas
+        [0.99], # learning rates
+        [200], # epochs
+        [0.01], # momentum alphas
         [0.9], # momentum betas (moving average)
         [1e-07], # lambdas
         [20], # hidden units
@@ -63,7 +63,8 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
                 #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
-                optimizer=optimizers.Adam(lr, epochs, mb)
+                optimizer=optimizers.Nadam(lr, epochs, mb, alpha)
+                #optimizer=optimizers.Adam(lr, epochs, mb)
                 )
         model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
