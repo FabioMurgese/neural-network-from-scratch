@@ -48,6 +48,19 @@ class SumSquaresError(LossFunction):
             return np.atleast_2d(error * layer.dz)
         else:
             return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)
+
+
+class CrossEntropy(LossFunction):
+    """Class implementation of Cross Entropy loss function.
+    """
+    
+    def delta(self, layer, right_layer, target):
+        if layer.is_output_layer:
+            output = layer.output
+            error = - target / output
+            return np.atleast_2d(error * layer.dz)
+        else:
+            return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)
         
 
 class BinaryCrossEntropy(LossFunction):
