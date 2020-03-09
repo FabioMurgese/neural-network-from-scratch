@@ -85,3 +85,17 @@ class Linear(ActivationFunction):
         """Computes linear function derivative.
         """
         return 1
+
+
+class Softmax(ActivationFunction):
+
+    def function(self, x):
+        """Computes Softmax function.
+        """
+        exps = np.exp(x - np.max(x))
+        return exps / np.sum(exps)
+
+    def derivative(self, x):
+        """Computes Softmax function derivative.
+        """
+        return self.function(x) * (1 - self.function(x))
