@@ -25,13 +25,13 @@ n_hidden = 15
 n_outputs = 1
 mb = 4
 
-model = nn.NeuralNetwork(
+model = nn.Sequential(
         error=errors.MeanEuclideanError(),
         loss=losses.MeanSquaredError(),
         regularizer=regularizers.L2(lmbda),
         optimizer=optimizers.SGD(lr, epochs, mb, alpha))
-model.add(nn.Layer(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activations.Sigmoid()))
-model.add(nn.Layer(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
+model.add(nn.Dense(dim=(training_set.shape[1]-n_outputs,n_hidden), activation=activations.Sigmoid()))
+model.add(nn.Dense(dim=(n_hidden,1), activation=activations.Sigmoid(), is_output=True))
 tr_errors, vl_errors, _, _ = model.fit(training_set, training_set)
 
 plt.plot(tr_errors)

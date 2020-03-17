@@ -44,7 +44,7 @@ for i, g in enumerate(grid):
     activation = g["activation"]
     n_outputs = g["n_outputs"]
     # building the model
-    model = nn.NeuralNetwork(
+    model = nn.Sequential(
             error=errors.MeanSquaredError(),
             loss=losses.MeanSquaredError(),
             #regularizer=None,
@@ -52,8 +52,8 @@ for i, g in enumerate(grid):
             optimizer=optimizers.SGD(lr, epochs, mb, alpha)
             #optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
     )
-    model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
-    model.add(nn.Layer(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
+    model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+    model.add(nn.Dense(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
     tr_errors, vl_errors, tr_accuracy, vl_accuracy = model.fit(training_set, test_set, True)
 
     _, MSE_test_set = model.validate(test_set)

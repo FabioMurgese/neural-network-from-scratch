@@ -57,8 +57,9 @@ class CrossEntropy(LossFunction):
     def delta(self, layer, right_layer, target):
         if layer.is_output_layer:
             output = layer.output
-            error = - target / output
-            return np.atleast_2d(error * layer.dz)
+            #error = - target / output
+            #return np.atleast_2d(error * layer.dz)
+            return np.atleast_2d(output - target)
         else:
             return np.atleast_2d(np.dot(right_layer.delta, right_layer.weight.T) * layer.dz)
         

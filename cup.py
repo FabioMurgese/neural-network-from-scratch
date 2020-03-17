@@ -59,7 +59,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
         lmbda = g["lambda"]
         
         # building the model
-        model = nn.NeuralNetwork(
+        model = nn.Sequential(
                 error=errors.MeanEuclideanError(),
                 loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
@@ -67,10 +67,10 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 optimizer=optimizers.Nadam(lr, epochs, mb, alpha)
                 #optimizer=optimizers.Adam(lr, epochs, mb)
                 )
-        model.add(nn.Layer(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
-        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-        model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-        model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
+        model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+        model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
+        model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
+        model.add(nn.Dense(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
         
         start_time = datetime.datetime.now()
         # k-fold cross validation
