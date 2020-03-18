@@ -126,13 +126,14 @@ class Adam(Optimizer):
     https://arxiv.org/pdf/1412.6980v8.pdf
     """
     
-    def __init__(self, lr=0.01, epochs=100, mb=5):
+    def __init__(self, lr=0.01, epochs=100, mb=5, lr_decay=False):
         self.lr = lr
         self.epochs = epochs
         self.beta_1 = 0.9
         self.beta_2 = 0.999
         self.epsilon = 1e-8
         self.mb = mb
+        self.lr_decay = lr_decay
     
     def __adam(self, X, y, m, v, t, net):
         """Perform Adam algorithm.
@@ -181,6 +182,9 @@ class Adam(Optimizer):
             # update parameters
             dw = self.lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
             layer.weight -= dw
+            # perform regularization
+            if(net.regularizer is not None):
+                net.regularizer.regularize(layer.weight)
             x = layer.output
         return net.error.error(y, net.layers[-1].output)
     
@@ -195,13 +199,14 @@ class Adam(Optimizer):
         vl_accuracy = []
         eta_0 = self.lr
         for t in range(1, self.epochs+1):
-            # learning rate decay
-            max_epochs = (self.epochs * 2 / 3)
-            alpha = self.epochs / max_epochs
-            eta_t = eta_0 / 100
-            self.lr = (1 - alpha) * eta_0 + alpha * eta_t
-            if (self.epochs > max_epochs):
-                self.lr = eta_t
+            if self.lr_decay:
+                # learning rate decay
+                max_epochs = (self.epochs * 2 / 3)
+                alpha = self.epochs / max_epochs
+                eta_t = eta_0 / 100
+                self.lr = (1 - alpha) * eta_0 + alpha * eta_t
+                if (self.epochs > max_epochs):
+                    self.lr = eta_t
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
                 x = np.atleast_2d(training_set[b:b+self.mb, :-net.n_outputs()])
@@ -214,7 +219,7 @@ class Adam(Optimizer):
             vl_errors.append(vl_error)
             if verbose:
                 print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
-                        t+1, self.epochs, tr_error, vl_error))
+                        t, self.epochs, tr_error, vl_error))
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))
@@ -229,7 +234,7 @@ class Nadam(Optimizer):
     http://cs229.stanford.edu/proj2015/054_report.pdf
     """
     
-    def __init__(self, lr=0.01, epochs=100, mb=5, alpha=0.9):
+    def __init__(self, lr=0.01, epochs=100, mb=5, alpha=0.9, lr_decay=False):
         self.lr = lr
         self.epochs = epochs
         self.beta_1 = 0.9
@@ -237,6 +242,7 @@ class Nadam(Optimizer):
         self.epsilon = 1e-8
         self.mb = mb
         self.alpha = alpha # Nesterov momentum parameter
+        self.lr_decay = lr_decay
     
     def __nadam(self, X, y, m, v, t, net):
         """Perform Nadam algorithm.
@@ -290,6 +296,9 @@ class Nadam(Optimizer):
             dw = self.lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
             # update weights
             layer.weight -= dw
+            # perform regularization
+            if(net.regularizer is not None):
+                net.regularizer.regularize(layer.weight)
             # computes the momentum for the next iteration
             layer.dw_old = dw + momentum
             x = layer.output
@@ -306,13 +315,14 @@ class Nadam(Optimizer):
         vl_accuracy = []
         eta_0 = self.lr
         for t in range(1, self.epochs+1):
-            # learning rate decay
-            max_epochs = (self.epochs * 2 / 3)
-            alpha = self.epochs / max_epochs
-            eta_t = eta_0 / 100
-            self.lr = (1 - alpha) * eta_0 + alpha * eta_t
-            if (self.epochs > max_epochs):
-                self.lr = eta_t
+            if self.lr_decay:
+                # learning rate decay
+                max_epochs = (self.epochs * 2 / 3)
+                alpha = self.epochs / max_epochs
+                eta_t = eta_0 / 100
+                self.lr = (1 - alpha) * eta_0 + alpha * eta_t
+                if (self.epochs > max_epochs):
+                    self.lr = eta_t
             epoch_errors = []
             for b in range(0, len(training_set), self.mb):
                 x = np.atleast_2d(training_set[b:b+self.mb, :-net.n_outputs()])
@@ -325,7 +335,7 @@ class Nadam(Optimizer):
             vl_errors.append(vl_error)
             if verbose:
                 print(">> epoch: {:d}/{:d}, tr. error: {:f}, val. error: {:f}".format(
-                        t+1, self.epochs, tr_error, vl_error))
+                        t, self.epochs, tr_error, vl_error))
             if compute_accuracy:
                 tr_accuracy.append(net.compute_accuracy(training_set[:,-net.n_outputs():], net.predict(training_set[:, :-net.n_outputs()])))
                 vl_accuracy.append(net.compute_accuracy(validation_set[:, -net.n_outputs():], net.predict(validation_set[:, :-net.n_outputs()])))

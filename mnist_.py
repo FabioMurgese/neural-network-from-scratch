@@ -34,24 +34,24 @@ test_labels = encoder.fit_transform(test_labels).toarray()
 training_set = np.hstack((train_images / 255, train_labels))
 test_set = np.hstack((test_images / 255, test_labels))
 
-lr = 0.2
+lr = 0.01
 epochs = 25
-mb = 1500
-alpha = 0.5
+mb = 2000
+alpha = 0.9
 beta = 0.2
 n_outputs = 10
 n_hidden = 30
 n_folds = 3
 
 model = Sequential(
-            error=errors.MeanEuclideanError(),
-            loss=losses.MeanSquaredError(),
-            regularizer=regularizers.L2(lmbda=1e-5),
-            #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
-            optimizer=optimizers.Adam(lr, epochs, mb)
-            #optimizer=optimizers.Nadam(lr, epochs, mb, alpha)
-            )
-model.add(Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activations.ReLu()))
+        error=errors.MeanEuclideanError(),
+        loss=losses.CrossEntropy(),
+        regularizer=regularizers.L2(lmbda=1e-9),
+        #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
+        optimizer=optimizers.Adam(lr, epochs, mb, lr_decay=False)
+        #optimizer=optimizers.Nadam(lr, epochs, mb, alpha, lr_decay=False)
+        )
+model.add(Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activations.Sigmoid()))
 model.add(Dense(dim=(n_hidden, n_outputs), activation=activations.Sigmoid(), is_output=True))
 
 # k-fold cross validation
