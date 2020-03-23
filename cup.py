@@ -28,11 +28,11 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.99], # learning rates
-        [200], # epochs
-        [0.01], # momentum alphas
-        [0.9], # momentum betas (moving average)
-        [1e-07], # lambdas
+        [0.001, 0.002, 0.01, 0.02, 0.1, 0.2], # learning rates
+        [50, 100, 500], # epochs
+        [0.9, 0.7, 0.4, 0.2, 0.1, 0.05], # momentum alphas
+        [0.01], # momentum betas (moving average)
+        [1e-08, 1e-07, 1e-06], # lambdas
         [20], # hidden units
         [50], # mini-batches
         [5], # number of folds
@@ -65,7 +65,7 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 regularizer=regularizers.L2(lmbda),
                 #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
                 optimizer=optimizers.Nadam(lr, epochs, mb, alpha)
-                #optimizer=optimizers.Adam(lr, epochs, mb)
+                #optimizer=optimizers.Adam(lr, epochs, mb, lr_decay=True)
                 )
         model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
@@ -137,15 +137,16 @@ print(models_mee)
 n_outputs = 2
 n_hidden = 20
 activation = activations.Sigmoid()
-model = nn.NeuralNetwork(
-                error=errors.MeanEuclideanError(),
-                loss=losses.MeanSquaredError(),
-                regularizer=regularizers.L2(lmbda=1e-07),
-                optimizer=optimizers.SGD(lr=0.09, epochs=500, mb=25, alpha=0.9, beta=0.9))
-model.add(nn.Layer(dim=(dataset.shape[1] - n_outputs, n_hidden), activation=activation))
-model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-model.add(nn.Layer(dim=(n_hidden, n_hidden), activation=activation))
-model.add(nn.Layer(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
+model = nn.Sequential(
+            error=errors.MeanEuclideanError(),
+            loss=losses.MeanSquaredError(),
+            regularizer=regularizers.L2(lmbda=1e-07),
+            optimizer=optimizers.Adam(lr=0.8, epochs=800, mb=50, lr_decay=True)
+            )
+model.add(nn.Dense(dim=(dataset.shape[1] - n_outputs, n_hidden), activation=activation))
+model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
+model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
+model.add(nn.Dense(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
 tr_errors, _, _, _ = model.fit(dataset, dataset, verbose=True)
 
 # plot learning curve
@@ -158,9 +159,10 @@ plt1.legend(['dataset'], loc='upper right')
 learning_img.show()
 
 _, ts_error = model.validate(test_set)
+print('Training error:', tr_errors[-1])
 print('Test error:', ts_error)
-#model.save('final_model')
+model.save('final_model')
 
-#model = nn.NeuralNetwork().load('/home/anto/Programming/neural-network-from-scratch/models/cup/20200302_205321_101/final_model.pkl')
+#model = nn.NeuralNetwork().load('/home/anto/Programming/neural-network-from-scratch/models/cup_adam/20200323_155217_14/final_model.pkl')
 #model.predict(blind_test_set, save_csv=True)
 """

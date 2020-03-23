@@ -233,7 +233,7 @@ class Sequential(NeuralNetwork):
         return super().save(folder, description, fig1, fig2)
     
     def load(self, filename):
-        super().load(filename)
+        return super().load(filename)
     
     def fit(self, training_set, validation_set, compute_accuracy=False, verbose=False):
         tr_errors, vl_errors, tr_accuracy, vl_accuracy = self.optimizer.train(training_set, validation_set, self, compute_accuracy, verbose)
