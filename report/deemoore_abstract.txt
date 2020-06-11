@@ -1,3 +1,3 @@
 - Topologia rete: 3 hidden layers con 20 unit e Sigmoid activation function; output layer con 2 unit e Linear activation function.
-- Parametri configurazione: learning rate: 0.09; epochs: 500; momentum alpha: 0.9; moentum beta (moving average): 0.9; regularization L2 con lambda: 1e-07; minibatch: 25; loss: Mean Squared Error.
+- Parametri configurazione: learning rate: 0.09; epochs: 500; momentum alpha: 0.9; momentum beta (moving average): 0.9; regularization L2 con lambda: 1e-07; minibatch: 25; loss: Mean Squared Error.
 - Validazione effettuata con 5-fold cross validation.

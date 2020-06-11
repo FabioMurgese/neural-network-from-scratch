@@ -132,7 +132,7 @@ for folder in os.listdir(runs_dir):
 models_mee = sorted(models_mee, key=lambda i: i["mee"])
 print(models_mee)
 
-""" 
+"""
 # model assessment
 n_outputs = 2
 n_hidden = 20
@@ -141,7 +141,7 @@ model = nn.Sequential(
             error=errors.MeanEuclideanError(),
             loss=losses.MeanSquaredError(),
             regularizer=regularizers.L2(lmbda=1e-07),
-            optimizer=optimizers.Nadam(lr=0.7, epochs=1000, mb=50, alpha=0.3, lr_decay=True)
+            optimizer=optimizers.SGD(lr=0.09, epochs=500, mb=25, alpha=0.9, beta=0.9)
             )
 model.add(nn.Dense(dim=(dataset.shape[1] - n_outputs, n_hidden), activation=activation))
 model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
@@ -157,12 +157,13 @@ plt1.set_xlabel("Epochs")
 plt1.set_ylabel("Error")
 plt1.legend(['dataset'], loc='upper right')
 learning_img.show()
+learning_img.savefig('learning_curve.png')
 
 _, ts_error = model.validate(test_set)
 print('Training error:', tr_errors[-1])
 print('Test error:', ts_error)
 model.save('final_model')
 
-#model = nn.NeuralNetwork().load('/home/anto/Programming/neural-network-from-scratch/models/cup_nadam/20200324_152309_63/final_model.pkl')
-#model.predict(blind_test_set, save_csv=True)
+model = nn.Sequential().load('models/cup/20200302_205321_101/final_model.pkl')
+model.predict(blind_test_set, save_csv=True)
 """
