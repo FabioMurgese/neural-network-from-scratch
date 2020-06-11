@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import datetime
+from tqdm import tqdm
 
 import neural_network.activation_functions as activations
 import neural_network.regularizers as regularizers
@@ -28,72 +29,101 @@ test_set = encoder.fit_transform(test_set).toarray()
 test_set = np.hstack((test_set, np.atleast_2d(dataset_test.iloc[:, 0].values).T))
 
 # grid search
-grid = [{'lr': 0.23, 'epochs': 400, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 4, 'mb': 20, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
+grid = nn.get_grid_search(
+        [0.9],  # learning rates
+        [70],  # epochs
+        [0, 0.8],  # momentum alphas
+        [0.8],  # momentum betas (moving average)
+        [1e-05],  # lambdas
+        [4],  # hidden units
+        [1],  # mini-batches
+        [4],  # number of folds
+        [activations.Sigmoid()]  # activation functions
+)
+
+# grid search
+# grid = [{'lr': 0.23, 'epochs': 400, 'alpha': 0.2, 'lambda': 1e-05, 'nhidden': 4, 'mb': 20, 'nfolds': 4, 'activation': activations.Sigmoid(), 'loss': losses.MeanSquaredError(), 'n_outputs': 1}]
 now = datetime.datetime.now()
-for i, g in enumerate(grid):
-    folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
-    grid_tr_errors = []
-    grid_vl_errors = []
-    # hyperparameters
-    lr = g["lr"]
-    epochs = g["epochs"]
-    alpha = g["alpha"]
-    lmbda = g["lambda"]
-    n_hidden = g["nhidden"]
-    mb = g["mb"]
-    activation = g["activation"]
-    n_outputs = g["n_outputs"]
-    # building the model
-    model = nn.Sequential(
-            error=errors.MeanSquaredError(),
-            loss=losses.MeanSquaredError(),
-            #regularizer=None,
-            regularizer=regularizers.L2(lmbda),
-            optimizer=optimizers.SGD(lr, epochs, mb, alpha)
-            #optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
-    )
-    model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
-    model.add(nn.Dense(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
-    tr_errors, vl_errors, tr_accuracy, vl_accuracy = model.fit(training_set, test_set, True)
+with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
+    for i, g in enumerate(grid):
+        folder = "{0}_{1}".format(now.strftime('%Y%m%d_%H%M%S'), i+1)
+        grid_tr_errors = []
+        grid_vl_errors = []
+        # hyperparameters
+        lr = g["lr"]
+        epochs = g["epochs"]
+        alpha = g["alpha"]
+        beta = g["beta"]
+        lmbda = g["lambda"]
+        n_hidden = g["nhidden"]
+        mb = g["mb"]
+        activation = g["activation"]
+        n_outputs = 1
 
-    _, MSE_test_set = model.validate(test_set)
+        # building the model
+        model = nn.Sequential(
+                error=errors.MeanSquaredError(),
+                loss=losses.MeanSquaredError(),
+                regularizer=regularizers.L2(lmbda),
+                optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
+                #optimizer=optimizers.Adam(alpha=lr, epochs=epochs)
+        )
+        model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
+        model.add(nn.Dense(dim=(n_hidden, 1), activation=activations.Sigmoid(), is_output=True))
+        tr_errors, vl_errors, tr_accuracy, vl_accuracy = model.fit(training_set, test_set, True)
 
-    # plot learning curve
-    learning_img, plt1 = plt.subplots()
-    plt1.plot(tr_errors)
-    plt1.plot(vl_errors)
-    plt1.set_title("Learning curve")
-    plt1.set_xlabel("Epochs")
-    plt1.set_ylabel("Error")
-    plt1.legend(['train', 'validation'], loc='upper right')
-    learning_img.show()
-    plt.close(learning_img)
+        _, MSE_test_set = model.validate(test_set)
 
-    # plot accuracy curve
-    accuracy_img, plt2 = plt.subplots()
-    plt2.plot(tr_accuracy)
-    plt2.plot(vl_accuracy)
-    plt2.set_title("Accuracy")
-    plt2.set_xlabel("Epochs")
-    plt2.set_ylabel("% Accuracy")
-    plt2.legend(['train', 'validation'], loc='lower right')
-    #accuracy_img.show()
-    plt.close(accuracy_img)
+        # plot learning curve
+        learning_img, plt1 = plt.subplots()
+        plt1.plot(tr_errors)
+        plt1.plot(vl_errors)
+        plt1.set_title("Learning curve")
+        plt1.set_xlabel("Epochs")
+        plt1.set_ylabel("Error")
+        plt1.legend(['train', 'validation'], loc='upper right')
+        learning_img.show()
+        plt.close(learning_img)
 
-    y = test_set[:, -1]
-    y_pred = model.predict(test_set[:, :-1])
-    """
-    for i, p in enumerate(y_pred):
-        print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))"""
-    y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
-    n_equals = 0
-    for i, e in enumerate(y):
-        if(e == y_pred[i]):
-            n_equals += 1
-    acc = (n_equals/len(y))*100
-    print('Accuracy: {:f}%'.format(acc))
-    g["activation"] = type(activation).__name__
-    g["loss"] = type(model.loss).__name__
-    desc = str(g) + '\nAccuracy: ' + str(acc) + "\nMSE training set: {0}".format(tr_errors[-1]) \
-                        + "\nMSE test set: {0}".format(MSE_test_set)
-    model.save(folder, desc, learning_img, accuracy_img)
+        # plot accuracy curve
+        accuracy_img, plt2 = plt.subplots()
+        plt2.plot(tr_accuracy)
+        plt2.plot(vl_accuracy)
+        plt2.set_title("Accuracy")
+        plt2.set_xlabel("Epochs")
+        plt2.set_ylabel("% Accuracy")
+        plt2.legend(['train', 'validation'], loc='lower right')
+        #accuracy_img.show()
+        plt.close(accuracy_img)
+
+        y = test_set[:, -1]
+        y_pred = model.predict(test_set[:, :-1])
+        """
+        for i, p in enumerate(y_pred):
+            print("y = {:d}, y_pred = {:f}".format(int(y[i]), float(p)))"""
+        y_pred = [1 if x >= 0.5 else 0 for x in y_pred]
+        n_equals = 0
+        for i, e in enumerate(y):
+            if(e == y_pred[i]):
+                n_equals += 1
+        acc = (n_equals/len(y))*100
+        print('Accuracy: {:f}%'.format(acc))
+        g["activation"] = type(activation).__name__
+        g["loss"] = type(model.loss).__name__
+        desc = str(g) + '\nAccuracy: ' + str(acc) + "\nMSE training set: {0}".format(tr_errors[-1]) \
+                            + "\nMSE test set: {0}".format(MSE_test_set)
+        model.save(folder, desc, learning_img, accuracy_img)
+        progress_bar.update(1)
+
+# extract and order the models w.r.t MEE VL
+import os
+runs_dir = 'runs/'
+models_acc = []
+for folder in os.listdir(runs_dir):
+    file = open(os.path.join(runs_dir, folder, 'description'))
+    for i, line in enumerate(file):
+        if i == 1:
+            acc = float(line.split(': ')[1])
+            models_acc.append({'name': folder, 'accuracy': acc})
+models_acc = sorted(models_acc, key=lambda i: i["accuracy"], reverse=True)
+print(models_acc)
