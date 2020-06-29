@@ -28,15 +28,15 @@ dataset = dataset.iloc[:, :].values
 # model selection
 # grid search
 grid = nn.get_grid_search(
-        [0.8, 0.7, 0.6], # learning rates
-        [500, 800, 1000], # epochs
-        [0.3, 0.2, 0.1], # momentum alphas
-        [0.01], # momentum betas (moving average)
-        [1e-09, 1e-08, 1e-07, 1e-06], # lambdas
-        [20], # hidden units
-        [50], # mini-batches
-        [5], # number of folds
-        [activations.Sigmoid()] # activation functions
+        [0.8],  # learning rates
+        [800],  # epochs
+        [0],  # momentum alphas
+        [0],  # momentum betas (moving average)
+        [1e-07],  # lambdas
+        [20],  # hidden units
+        [50],  # mini-batches
+        [5],  # number of folds
+        [activations.Sigmoid()]  # activation functions
 )
 
 now = datetime.datetime.now()
@@ -63,9 +63,9 @@ with tqdm(total=int(len(grid)), position=0, leave=True) as progress_bar:
                 error=errors.MeanEuclideanError(),
                 loss=losses.MeanSquaredError(),
                 regularizer=regularizers.L2(lmbda),
-                #optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
-                optimizer=optimizers.Nadam(lr, epochs, mb, alpha, lr_decay=True)
-                #optimizer=optimizers.Adam(lr, epochs, mb, lr_decay=True)
+                # optimizer=optimizers.SGD(lr, epochs, mb, alpha, beta)
+                # optimizer=optimizers.Nadam(lr, epochs, mb, alpha, lr_decay=True)
+                optimizer=optimizers.Adam(lr, epochs, mb, lr_decay=True)
                 )
         model.add(nn.Dense(dim=(training_set.shape[1] - n_outputs, n_hidden), activation=activation))
         model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
@@ -141,12 +141,15 @@ model = nn.Sequential(
             error=errors.MeanEuclideanError(),
             loss=losses.MeanSquaredError(),
             regularizer=regularizers.L2(lmbda=1e-07),
-            optimizer=optimizers.SGD(lr=0.09, epochs=500, mb=25, alpha=0.9, beta=0.9)
+            optimizer=optimizers.Adam(lr=0.8, epochs=800, mb=50, lr_decay=True)
+            #optimizer=optimizers.SGD(lr=0.09, epochs=500, mb=25, alpha=0.9, beta=0.9)
             )
 model.add(nn.Dense(dim=(dataset.shape[1] - n_outputs, n_hidden), activation=activation))
 model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
 model.add(nn.Dense(dim=(n_hidden, n_hidden), activation=activation))
 model.add(nn.Dense(dim=(n_hidden, n_outputs), activation=activations.Linear(), is_output=True))
+"""
+"""
 tr_errors, _, _, _ = model.fit(dataset, dataset, verbose=True)
 
 # plot learning curve
